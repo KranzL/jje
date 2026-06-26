@@ -1,7 +1,7 @@
 ---
 name: security-juror
 description: JJE juror. Audits the candidate for injection, secrets, authz gaps, and unsafe dependencies only. Tool-backed. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: haiku
 skills: [jje-contract, security-review]
 ---

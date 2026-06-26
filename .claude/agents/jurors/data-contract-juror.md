@@ -1,7 +1,7 @@
 ---
 name: data-contract-juror
 description: JJE juror. Reviews pipeline changes for schema evolution and event-contract compatibility only. Runs dbt parse/compile. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 skills: [jje-contract, data-contract-review]
 ---

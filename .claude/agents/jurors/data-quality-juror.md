@@ -1,7 +1,7 @@
 ---
 name: data-quality-juror
 description: JJE juror. Reviews pipeline changes for nulls, dedup, and referential integrity only. Runs dbt test / data tests. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: haiku
 skills: [jje-contract, data-quality-review]
 ---

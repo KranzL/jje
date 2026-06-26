@@ -7,7 +7,7 @@
   },
   "license": "Apache-2.0",
   "keywords": ["code-review", "agents", "jury", "generator-critic", "ci-gate"],
-  "homepage": "https://github.com/OWNER/jje",
+  "homepage": "https://github.com/KranzL/jje",
   "commands": "./commands",
   "agents": "./agents",
   "skills": "./skills",

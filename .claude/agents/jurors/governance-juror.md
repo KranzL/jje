@@ -1,7 +1,7 @@
 ---
 name: governance-juror
 description: JJE juror. Reviews pipeline changes for ownership, PII tagging, and catalog registration only. Scans for PII and owner tags. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 skills: [jje-contract, governance-review]
 ---

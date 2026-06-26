@@ -1,7 +1,7 @@
 ---
 name: correctness-juror
 description: JJE juror. Reviews the candidate for logic, edge cases, and complexity only. Runs the test suite and reasons about correctness. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 skills: [jje-contract, correctness-review]
 ---

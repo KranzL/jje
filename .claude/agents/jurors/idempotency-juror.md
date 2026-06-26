@@ -1,7 +1,7 @@
 ---
 name: idempotency-juror
 description: JJE juror. Reviews pipeline write semantics for idempotency, dedup, and merge correctness only. Reasons over the write path. Emits one verdict.
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Write
 model: sonnet
 skills: [jje-contract, idempotency-review]
 ---

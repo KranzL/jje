@@ -1,7 +1,7 @@
 ---
 name: cost-juror
 description: JJE juror. Reviews pipeline changes for scan cost, partitioning, and file sizing only. Runs query EXPLAIN. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: haiku
 skills: [jje-contract, cost-review]
 ---

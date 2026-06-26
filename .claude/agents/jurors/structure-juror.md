@@ -1,7 +1,7 @@
 ---
 name: structure-juror
 description: JJE juror. Reviews the candidate for naming, module boundaries, and repo conventions only. Runs the linter. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: haiku
 skills: [jje-contract, structure-review]
 ---

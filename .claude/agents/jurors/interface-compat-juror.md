@@ -1,7 +1,7 @@
 ---
 name: interface-compat-juror
 description: JJE juror. Reviews the candidate for public API / signature stability only. Diffs the published surface. Emits one verdict.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 skills: [jje-contract, interface-review]
 ---

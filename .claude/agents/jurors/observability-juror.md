@@ -1,7 +1,7 @@
 ---
 name: observability-juror
 description: JJE juror. Reviews the candidate for logging, metrics, tracing, and error-path coverage only. Pattern checks over changed files. Emits one verdict.
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Write
 model: haiku
 skills: [jje-contract, observability-review]
 ---

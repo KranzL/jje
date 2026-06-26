@@ -20,7 +20,7 @@ A single GitHub repo that is simultaneously a plugin and its own one-entry
 marketplace. A borrower runs:
 
 ```
-/plugin marketplace add <owner>/jje
+/plugin marketplace add KranzL/jje
 /plugin install jje@jje
 ```
 
