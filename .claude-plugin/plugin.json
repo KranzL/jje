@@ -1,0 +1,15 @@
+{
+  "name": "jje",
+  "version": "0.1.0",
+  "description": "Judge, Jury, Executioner — a generator-critic loop for Claude Code: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, and route accept/revise/replan/escalate with CI as the final gate.",
+  "author": {
+    "name": "The JJE authors"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["code-review", "agents", "jury", "generator-critic", "ci-gate"],
+  "homepage": "https://github.com/OWNER/jje",
+  "commands": "./commands",
+  "agents": "./agents",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json"
+}

@@ -1,0 +1,36 @@
+{
+  "default_budget": 6,
+  "protected_branches": ["main", "master"],
+  "ci_command": "make ci",
+  "escalation_policy": "stop",
+  "oscillation": {
+    "repeat_threshold": 2,
+    "detect_contradictions": true
+  },
+  "models": {
+    "planner": "sonnet",
+    "executor": "sonnet",
+    "judge": "opus",
+    "juror_default": "haiku",
+    "juror_high_judgment": "sonnet"
+  },
+  "jurors": {
+    "correctness-juror":      {"agent": "correctness-juror",      "skill": "correctness-review",   "lane": "code",     "model": "sonnet"},
+    "security-juror":         {"agent": "security-juror",         "skill": "security-review",      "lane": "code",     "model": "haiku"},
+    "structure-juror":        {"agent": "structure-juror",        "skill": "structure-review",     "lane": "code",     "model": "haiku"},
+    "observability-juror":    {"agent": "observability-juror",    "skill": "observability-review", "lane": "code",     "model": "haiku"},
+    "interface-compat-juror": {"agent": "interface-compat-juror", "skill": "interface-review",     "lane": "code",     "model": "sonnet"},
+    "data-contract-juror":    {"agent": "data-contract-juror",    "skill": "data-contract-review", "lane": "pipeline", "model": "sonnet"},
+    "idempotency-juror":      {"agent": "idempotency-juror",      "skill": "idempotency-review",   "lane": "pipeline", "model": "sonnet"},
+    "cost-juror":             {"agent": "cost-juror",             "skill": "cost-review",          "lane": "pipeline", "model": "haiku"},
+    "data-quality-juror":     {"agent": "data-quality-juror",     "skill": "data-quality-review",  "lane": "pipeline", "model": "haiku"},
+    "governance-juror":       {"agent": "governance-juror",       "skill": "governance-review",    "lane": "pipeline", "model": "sonnet"}
+  },
+  "presets": {
+    "quick": ["correctness-juror", "security-juror"],
+    "code-full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror"],
+    "pipeline": ["data-contract-juror", "idempotency-juror", "data-quality-juror", "cost-juror"],
+    "security-sweep": ["security-juror", "governance-juror", "data-contract-juror"],
+    "full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror", "data-contract-juror", "idempotency-juror", "cost-juror", "data-quality-juror", "governance-juror"]
+  }
+}

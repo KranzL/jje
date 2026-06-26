@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push origin main*)",
+      "Bash(git push origin master*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ],
+    "allow": [
+      "Bash(python3 *.claude/scripts/jje_state.py*)",
+      "Bash(git worktree*)",
+      "Bash(git switch*)",
+      "Bash(git diff*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git rev-parse*)",
+      "Bash(gitleaks*)",
+      "Bash(semgrep*)",
+      "Bash(ruff*)",
+      "Bash(bandit*)",
+      "Bash(pip-audit*)",
+      "Bash(golangci-lint*)",
+      "Bash(gosec*)",
+      "Bash(govulncheck*)",
+      "Bash(go test*)",
+      "Bash(go vet*)",
+      "Bash(cargo test*)",
+      "Bash(cargo clippy*)",
+      "Bash(cargo audit*)",
+      "Bash(pytest*)",
+      "Bash(dbt parse*)",
+      "Bash(dbt compile*)",
+      "Bash(dbt test*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/jje-ci-gate.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/jje-loop-guard.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

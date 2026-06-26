@@ -1,0 +1,14 @@
+{
+  "name": "jje",
+  "owner": {
+    "name": "The JJE authors"
+  },
+  "plugins": [
+    {
+      "name": "jje",
+      "source": "./dist/plugin",
+      "description": "Judge, Jury, Executioner generator-critic loop for Claude Code.",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# JJE runtime state (per-repo, never committed)
+.jje/runs/
+.jje/worktrees/
+.jje/COMMIT_APPROVED
+.jje/ACTIVE
+.jje/config.json
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Plugin build artifact
+dist/

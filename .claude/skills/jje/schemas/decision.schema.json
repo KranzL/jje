@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JJE judge decision",
+  "type": "object",
+  "required": ["decision", "rationale", "feedback", "unresolved"],
+  "additionalProperties": true,
+  "properties": {
+    "decision": {"enum": ["ACCEPT", "REVISE", "REPLAN", "ESCALATE"]},
+    "rationale": {"type": "string"},
+    "feedback": {"type": "string", "description": "scoped blocking findings for the Executor (REVISE) or why the plan is wrong (REPLAN)"},
+    "unresolved": {"type": "array", "items": {"type": "string"}},
+    "contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {"a": {"type": "string"}, "b": {"type": "string"}, "note": {"type": "string"}}
+      }
+    }
+  }
+}
