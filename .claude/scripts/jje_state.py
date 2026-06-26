@@ -321,6 +321,18 @@ def cmd_close(a):
     _emit({"closed": True, "status": run["status"] if run else None})
 
 
+def cmd_status(a):
+    rd = _run_dir(a.run)
+    run = _load(os.path.join(rd, "run.json"))
+    if run is None:
+        _die("no such run")
+    ledger = _load(os.path.join(rd, "ledger.json"), {"findings": {}, "contradictions": []})
+    open_finding_count = len([v for v in ledger["findings"].values()
+                              if len(v["iterations"]) >= 1])
+    _emit({"iteration": run["iteration"], "budget": run["budget"],
+           "status": run["status"], "open_finding_count": open_finding_count})
+
+
 def main():
     p = argparse.ArgumentParser(prog="jje_state")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -355,6 +367,9 @@ def main():
 
     s = sub.add_parser("close"); s.add_argument("--run", required=True)
     s.add_argument("--status", default=""); s.set_defaults(fn=cmd_close)
+
+    s = sub.add_parser("status"); s.add_argument("--run", required=True)
+    s.set_defaults(fn=cmd_status)
 
     a = p.parse_args()
     a.fn(a)

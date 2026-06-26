@@ -63,6 +63,19 @@ python3 -c "import json,time;json.dump({'command':'make ci','exit_code':0,'sha':
 if S accept --run "$RUNABS" >/dev/null 2>&1; then ok "accept succeeds on green CI artifact"; else bad "accept should succeed on green CI"; fi
 [ -f "$CLAUDE_PROJECT_DIR/.jje/COMMIT_APPROVED" ] && ok "COMMIT_APPROVED marker written" || bad "no marker after accept"
 
+echo "== status subcommand =="
+TMP4="$(mktemp -d)"; export CLAUDE_PROJECT_DIR="$TMP4"
+OUT="$(S init --request "status test" --budget 4)"; RUN="$(printf '%s' "$OUT" | field run_dir)"; RUNABS="$RUN"
+S start-iteration --run "$RUNABS" >/dev/null
+S record-decision --run "$RUNABS" --decision REVISE --feedback "needs work" >/dev/null
+ST="$(S status --run "$RUNABS")"
+[ "$(printf '%s' "$ST" | field iteration)" = "1" ] && ok "status.iteration=1" || bad "status.iteration wrong"
+[ "$(printf '%s' "$ST" | field budget)" = "4" ] && ok "status.budget=4" || bad "status.budget wrong"
+[ "$(printf '%s' "$ST" | field status)" = "revising" ] && ok "status.status=revising" || bad "status.status wrong"
+[ "$(printf '%s' "$ST" | field open_finding_count)" = "0" ] && ok "status.open_finding_count=0" || bad "status.open_finding_count wrong"
+if python3 "$STATE" status >/dev/null 2>&1; then bad "status without --run should exit non-zero"; else ok "status without --run exits non-zero"; fi
+if S status --run "/nonexistent/path" >/dev/null 2>&1; then bad "status on missing run should exit non-zero"; else ok "status on missing run exits non-zero"; fi
+
 echo
 echo "== $PASS passed, $FAIL failed =="
 [ "$FAIL" -eq 0 ]
