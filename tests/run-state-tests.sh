@@ -76,6 +76,20 @@ ST="$(S status --run "$RUNABS")"
 if python3 "$STATE" status >/dev/null 2>&1; then bad "status without --run should exit non-zero"; else ok "status without --run exits non-zero"; fi
 if S status --run "/nonexistent/path" >/dev/null 2>&1; then bad "status on missing run should exit non-zero"; else ok "status on missing run exits non-zero"; fi
 
+echo "== malformed-verdict fail-safe (T3.1) =="
+TMP5="$(mktemp -d)"; export CLAUDE_PROJECT_DIR="$TMP5"
+OUT="$(S init --request malformed --budget 4)"; RUN="$(printf '%s' "$OUT" | field run_dir)"; RUNABS="$RUN"
+S start-iteration --run "$RUNABS" >/dev/null
+mkdir -p "$RUNABS/iterations/iter-1/verdicts"
+printf '{"juror":"y" NOT JSON' > "$RUNABS/iterations/iter-1/verdicts/y.json"
+printf '{"juror":"z","category":"c","findings":[{"id":"a","check":"c","severity":"error","issue":"bug, no blocking key"}],"ran":[],"skipped":[]}' > "$RUNABS/iterations/iter-1/verdicts/z.json"
+G="$(S check-guards --run "$RUNABS" 2>&1)"
+if printf '%s' "$G" | python3 -c "import json,sys;d=json.load(sys.stdin);sys.exit(0 if d['blocking_now']>=2 and len(d['malformed'])==2 else 1)" 2>/dev/null; then
+  ok "malformed + missing-blocking verdicts fail safe (counted blocking, no crash)"
+else
+  bad "malformed verdict not handled safely"
+fi
+
 echo
 echo "== $PASS passed, $FAIL failed =="
 [ "$FAIL" -eq 0 ]

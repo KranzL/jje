@@ -62,6 +62,16 @@ if is_protected "$BRANCH" || [ "$BRANCH" = "unknown" ] || printf '%s' "$CMD" | g
     if [ ! -f "$MARKER" ]; then
       deny "JJE: a run is active and this commit/merge targets '$BRANCH' without Judge ACCEPT + green-CI approval (no .jje/COMMIT_APPROVED). Let the loop run \`accept\` first."
     fi
+    # Bind the approval to the CI-validated commit: the candidate branch's HEAD
+    # must still be the exact sha CI ran on, or the approval is stale.
+    M_SHA="$(jq -r '.ci_sha // ""' "$MARKER" 2>/dev/null || echo "")"
+    M_BR="$(jq -r '.scratch_branch // ""' "$MARKER" 2>/dev/null || echo "")"
+    if [ -n "$M_SHA" ] && [ -n "$M_BR" ]; then
+      CUR="$(git -C "$DIR" rev-parse "$M_BR" 2>/dev/null || echo "")"
+      if [ -n "$CUR" ] && [ "$CUR" != "$M_SHA" ]; then
+        deny "JJE: candidate $M_BR is now ${CUR:0:9} but CI validated ${M_SHA:0:9}. The candidate changed after CI; re-run \`ci\` + \`accept\`."
+      fi
+    fi
     rm -f "$MARKER"   # single-use: consume so it cannot authorize a later commit
   fi
 fi

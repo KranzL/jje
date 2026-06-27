@@ -6,6 +6,23 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Changed
+- Reframed as a **harness** (not a single skill) across the README, plugin
+  manifest, and docs, with an explicit two-tier safety model.
+
+### Fixed (driven by a gap-hardening test pass — see docs/TEST-FINDINGS.md)
+- `check-guards` now **fails safe** on a malformed or schema-invalid verdict
+  (treats it as a blocking finding) instead of crashing on bad JSON or silently
+  dropping a finding that lacks the `blocking` key (T3.1).
+- The commit gate now **binds the approval marker to the CI-validated sha** — a
+  candidate that changed after CI can no longer merge on a stale approval (T3.2).
+- `close` now garbage-collects the run's worktree and scratch branch (T4.1).
+- Documented the **conditional nature of the hooks**: they enforce only in a
+  trusted workspace and a non-bypass permission mode; the unconditional
+  guarantees come from the deterministic CLI + orchestrator discipline (Bucket 1).
+- Planner and all jurors carry a `Write` tool so they can emit their own output
+  files (two jurors previously had no write path).
+
 ### Added
 - Initial JJE harness: Planner / Executor / Jury / Judge generator–critic loop
   on portable Claude Code primitives.

@@ -1,7 +1,7 @@
 {
   "name": "jje",
   "version": "0.1.0",
-  "description": "Judge, Jury, Executioner — a generator-critic loop for Claude Code: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, and route accept/revise/replan/escalate with CI as the final gate.",
+  "description": "Judge, Jury, Executioner — a generator-critic harness for Claude Code: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, and route accept/revise/replan/escalate with CI as the final gate.",
   "author": {
     "name": "The JJE authors"
   },

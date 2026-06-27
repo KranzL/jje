@@ -1,10 +1,18 @@
 # Judge, Jury, Executioner (JJE)
 
-A generator–critic loop for Claude Code. You ask for a change and seat a panel of
-reviewers; JJE plans it, builds it on a throwaway branch, has independent
-tool-backed jurors review it in parallel, and a Judge routes the result —
-**revise, replan, accept, or escalate** — until it ships or hands back to you.
-Nothing reaches `main` until the Judge accepts *and* CI is green.
+**A generator–critic *harness* for Claude Code.** You ask for a change and seat a
+panel of reviewers; JJE plans it, builds it on a throwaway branch, has
+independent tool-backed jurors review it in parallel, and a Judge routes the
+result — **revise, replan, accept, or escalate** — until it ships or hands back
+to you. Nothing reaches `main` until the Judge accepts *and* CI is green.
+
+> **What this is: a harness, not a single skill.** The `/jje` slash command is
+> just the entry point. What makes JJE a *harness* is everything wrapped around
+> the work to control and verify it: the generator–critic loop, an iteration
+> budget, an oscillation guard, candidate isolation on a scratch branch, a
+> CI-validated commit gate, a deterministic state machine, and safety hooks. The
+> skill is the conductor; the harness is the whole apparatus that constrains an
+> otherwise-freeform process and gives it defined behavior at the edges.
 
 It runs on portable Claude Code primitives only — subagents, skills, hooks — so
 you can drop it into any repo. No SDK, no external service, no API keys beyond the
@@ -108,22 +116,34 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
 - `models` — per-role model overrides.
 - `jurors` + `presets` — the roster registry and the named panels.
 
-## Safety guarantees (and their honest limits)
+## Safety model (tested, with honest limits)
 
-- **Candidate never touches `main`.** The Executor works only in a scratch-branch
-  worktree; while a run is active the `jje-ci-gate` hook blocks every
-  commit/merge/push without a `.jje/COMMIT_APPROVED` marker, and pushes to a
-  protected branch are denied outright.
-- **The CI gate is real.** The marker is minted only after `jje_state.py ci`
-  records a verifiable result artifact (the actual exit code) and `accept`
-  validates exit 0 — not after the model says "CI passed".
-- **Termination is capped independently of the model.** The loop-guard hook keeps
-  its own Executor-spawn counter, so even an orchestrator that skips the state
-  CLI cannot loop past the budget.
-- **Limit:** the *step-by-step* orchestration is the main agent following a
-  skill (probabilistic), backed by deterministic counters and hooks (hard). The
-  guarantees above hold by construction; the loop's smooth running relies on the
-  orchestrator following the skill.
+JJE has **two tiers** of enforcement. We tested both — see
+[docs/TEST-FINDINGS.md](docs/TEST-FINDINGS.md).
+
+**Tier 1 — unconditional (does not depend on hooks):**
+- **The candidate lives on a scratch branch.** The Executor only edits an
+  isolated worktree; the orchestrator merges to `main` *only after* `accept`
+  mints the marker. Even with every hook disabled, `main` stays clean as long as
+  the orchestrator follows the skill.
+- **CI is validated by artifact, not by claim.** `jje_state.py ci` records the
+  real exit code; `accept` refuses to mint the marker unless it's exit 0 and
+  fresh — not when the model *says* "CI passed".
+- **The budget is enforced by the CLI.** `start-iteration` refuses past the cap,
+  independent of any hook.
+
+**Tier 2 — best-effort defense-in-depth (the hooks):** a `PreToolUse` gate blocks
+unapproved commits/merges/pushes, and a loop-guard caps Executor spawns. These
+are real, but **conditional** — testing showed they enforce **only when**:
+- the workspace is **trusted** (an untrusted workspace silently loads *neither*
+  hooks nor permission rules — set `hasTrustDialogAccepted` / accept the trust
+  dialog once), **and**
+- the session is **not** in `--permission-mode bypassPermissions` (YOLO mode
+  ignores hook denials), and the gated command isn't on the permission allowlist.
+
+So the hooks harden against a *misbehaving orchestrator*, but they are not an
+unbypassable wall. **Run JJE in a trusted workspace and in a normal permission
+mode** to get the Tier-2 backstop; Tier 1 holds regardless.
 
 ## Layout
 

@@ -72,6 +72,39 @@ def _die(msg, code=3):
     sys.exit(code)
 
 
+# Required keys for a minimally well-formed verdict (the load-bearing subset of
+# the verdict contract). A verdict missing these, or with non-list findings, is
+# treated as malformed and fails safe in check-guards.
+def _load_verdict(vp):
+    try:
+        with open(vp) as f:
+            v = json.load(f)
+    except Exception as e:
+        return None, f"unparseable JSON ({e.__class__.__name__})"
+    if not isinstance(v, dict):
+        return None, "verdict is not a JSON object"
+    for k in ("juror", "category", "findings", "ran", "skipped"):
+        if k not in v:
+            return None, f"missing required field '{k}'"
+    if not isinstance(v["findings"], list):
+        return None, "'findings' is not a list"
+    for fnd in v["findings"]:
+        if not isinstance(fnd, dict) or "blocking" not in fnd:
+            return None, "a finding is missing the 'blocking' field"
+    return v, None
+
+
+def _cleanup_worktree(run):
+    """Best-effort removal of a run's worktree (used on close, after a merge)."""
+    wt = os.path.join(ROOT, run.get("worktree", "")) if run.get("worktree") else ""
+    if wt and os.path.isdir(wt):
+        subprocess.run(["git", "-C", ROOT, "worktree", "remove", "--force", wt],
+                       capture_output=True)
+    br = run.get("scratch_branch", "")
+    if br:
+        subprocess.run(["git", "-C", ROOT, "branch", "-D", br], capture_output=True)
+
+
 def _fingerprint(category, finding):
     """Stable identity of a finding across iterations: severity-independent,
     line-tolerant. A finding is 'the same' if its lane + check + file +
@@ -157,9 +190,20 @@ def cmd_check_guards(a):
     ledger = _load(os.path.join(rd, "ledger.json"))
     vdir = os.path.join(rd, "iterations", f"iter-{it}", "verdicts")
     current = []
+    malformed = []
     for vp in sorted(glob.glob(os.path.join(vdir, "*.json"))):
-        v = _load(vp)
-        if not v:
+        juror_name = os.path.basename(vp)[:-5]
+        v, err = _load_verdict(vp)
+        if err:
+            # Fail SAFE: a malformed or schema-invalid verdict is itself treated
+            # as a blocking finding, so the loop never silently routes on corrupt
+            # data and never crashes on bad JSON.
+            fnd = {"id": f"malformed-{juror_name}", "check": "verdict-validation",
+                   "severity": "error", "blocking": True,
+                   "issue": f"verdict from {juror_name} is invalid: {err}",
+                   "evidence": vp}
+            current.append((_fingerprint("malformed", fnd), fnd, juror_name))
+            malformed.append({"juror": juror_name, "error": err})
             continue
         for fnd in v.get("findings", []):
             if not fnd.get("blocking"):
@@ -181,6 +225,7 @@ def cmd_check_guards(a):
     escalate = bool(recurring) or bool(ledger["contradictions"]) \
         or run["iteration"] >= run["budget"]
     _emit({"iteration": it, "blocking_now": len(current),
+           "malformed": malformed,
            "recurring": recurring, "contradictions": ledger["contradictions"],
            "budget_remaining": run["budget"] - it,
            "recommend_escalate": escalate})
@@ -312,13 +357,18 @@ def cmd_close(a):
     Marks the run committed/closed so a new JJE run can start."""
     rd = _run_dir(a.run)
     run = _load(os.path.join(rd, "run.json"))
+    cleaned = False
     if run is not None:
         run["status"] = a.status or "committed"
         _save(os.path.join(rd, "run.json"), run)
         _clear_active(run["run_id"])
+        if not a.keep_worktree:
+            _cleanup_worktree(run)   # GC: the run is done, the candidate is merged
+            cleaned = True
     if os.path.exists(MARKER):
         os.remove(MARKER)
-    _emit({"closed": True, "status": run["status"] if run else None})
+    _emit({"closed": True, "status": run["status"] if run else None,
+           "worktree_removed": cleaned})
 
 
 def cmd_status(a):
@@ -366,7 +416,8 @@ def main():
     s.add_argument("--reason", default=""); s.set_defaults(fn=cmd_escalate)
 
     s = sub.add_parser("close"); s.add_argument("--run", required=True)
-    s.add_argument("--status", default=""); s.set_defaults(fn=cmd_close)
+    s.add_argument("--status", default=""); s.add_argument("--keep-worktree", action="store_true")
+    s.set_defaults(fn=cmd_close)
 
     s = sub.add_parser("status"); s.add_argument("--run", required=True)
     s.set_defaults(fn=cmd_status)
