@@ -24,13 +24,21 @@
     "idempotency-juror":      {"agent": "idempotency-juror",      "skill": "idempotency-review",   "lane": "pipeline", "model": "sonnet"},
     "cost-juror":             {"agent": "cost-juror",             "skill": "cost-review",          "lane": "pipeline", "model": "haiku"},
     "data-quality-juror":     {"agent": "data-quality-juror",     "skill": "data-quality-review",  "lane": "pipeline", "model": "haiku"},
-    "governance-juror":       {"agent": "governance-juror",       "skill": "governance-review",    "lane": "pipeline", "model": "sonnet"}
+    "governance-juror":       {"agent": "governance-juror",       "skill": "governance-review",    "lane": "pipeline", "model": "sonnet"},
+    "go-concurrency-juror":   {"agent": "go-concurrency-juror",   "skill": "go-concurrency-review",     "lane": "go",       "model": "sonnet"},
+    "go-error-handling-juror":{"agent": "go-error-handling-juror","skill": "go-error-handling-review",  "lane": "go",       "model": "haiku"},
+    "go-performance-juror":   {"agent": "go-performance-juror",   "skill": "go-performance-review",     "lane": "go",       "model": "haiku"},
+    "table-format-juror":     {"agent": "table-format-juror",     "skill": "table-format-review",       "lane": "datalake", "model": "sonnet"},
+    "partitioning-layout-juror":{"agent": "partitioning-layout-juror","skill": "partitioning-layout-review","lane": "datalake","model": "sonnet"},
+    "storage-format-juror":   {"agent": "storage-format-juror",   "skill": "storage-format-review",     "lane": "datalake", "model": "haiku"}
   },
   "presets": {
     "quick": ["correctness-juror", "security-juror"],
     "code-full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror"],
     "pipeline": ["data-contract-juror", "idempotency-juror", "data-quality-juror", "cost-juror"],
     "security-sweep": ["security-juror", "governance-juror", "data-contract-juror"],
-    "full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror", "data-contract-juror", "idempotency-juror", "cost-juror", "data-quality-juror", "governance-juror"]
+    "go": ["correctness-juror", "security-juror", "go-concurrency-juror", "go-error-handling-juror", "go-performance-juror"],
+    "datalake": ["data-contract-juror", "idempotency-juror", "data-quality-juror", "table-format-juror", "partitioning-layout-juror", "storage-format-juror"],
+    "full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror", "data-contract-juror", "idempotency-juror", "cost-juror", "data-quality-juror", "governance-juror", "go-concurrency-juror", "go-error-handling-juror", "go-performance-juror", "table-format-juror", "partitioning-layout-juror", "storage-format-juror"]
   }
 }

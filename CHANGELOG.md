@@ -24,6 +24,12 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
   files (two jurors previously had no write path).
 
 ### Added
+- **Go lane** jurors: `go-concurrency` (data races / goroutine leaks via
+  `go test -race`), `go-error-handling` (errcheck / wrapping / panic),
+  `go-performance` (allocations / escape analysis / benchmarks), plus a `go` preset.
+- **Datalake lane** jurors: `table-format` (Iceberg/Delta/Hudi schema + ACID),
+  `partitioning-layout` (small files / compaction / clustering), `storage-format`
+  (Parquet/ORC/Avro / compression / pushdown), plus a `datalake` preset.
 - Initial JJE harness: Planner / Executor / Jury / Judge generator–critic loop
   on portable Claude Code primitives.
 - `jje` orchestration skill driving the loop from the main agent.

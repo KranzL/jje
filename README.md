@@ -92,6 +92,22 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `data-quality-juror` | Haiku | Nulls, dedup, referential integrity | Failing data test, dropped quality constraint |
 | `governance-juror` | Sonnet | Ownership, PII, catalog | Untagged PII, governed change with no owner |
 
+### Go lane
+
+| Juror | Model | Reviews | Blocks on |
+|---|---|---|---|
+| `go-concurrency-juror` | Sonnet | Races, goroutine leaks, channels, context | A `go test -race` data race, a goroutine/resource leak, a deadlock-prone pattern |
+| `go-error-handling-juror` | Haiku | Unchecked errors, wrapping, panic/recover | A swallowed error, a panic in library code, broken `errors.Is/As` wrapping |
+| `go-performance-juror` | Haiku | Allocations, escape analysis, benchmarks | A new hot-path allocation/escape, a measured benchmark regression |
+
+### Datalake lane
+
+| Juror | Model | Reviews | Blocks on |
+|---|---|---|---|
+| `table-format-juror` | Sonnet | Iceberg/Delta/Hudi schema + ACID | A schema/partition-spec change the format + live readers can't absorb, a torn-snapshot write |
+| `partitioning-layout-juror` | Sonnet | Partition design, small files, compaction | High-cardinality partitioning, missing compaction on an append table, no-pruning layout |
+| `storage-format-juror` | Haiku | Parquet/ORC/Avro, compression, pushdown | A large table uncompressed / row-oriented, a type choice that defeats pushdown |
+
 ### Presets
 
 | Preset | Jurors |
@@ -100,7 +116,9 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `code-full` | all 5 code jurors |
 | `pipeline` | data-contract + idempotency + data-quality + cost |
 | `security-sweep` | security + governance + data-contract |
-| `full` | all 10 |
+| `go` | correctness + security + the 3 Go jurors |
+| `datalake` | data-contract + idempotency + data-quality + the 3 datalake jurors |
+| `full` | all 16 |
 | `custom` | choose individually |
 
 ## Configuration
