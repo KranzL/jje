@@ -1,45 +1,949 @@
 {
-  "description": "Seeded-defect eval corpus. Each case is a fixture with a KNOWN planted defect that a specific juror must flag as blocking. The recall harness (tests/run-eval.sh, opt-in, needs live jurors) runs the juror against the fixture and checks it produced a blocking finding whose check/issue matches. This is the instrument for measuring per-lane false-negative rate and tuning blocking bars.",
+  "description": "Seeded-defect (recall) + clean-twin (precision) eval corpus across all 38 jurors. Recall: does the juror flag the planted defect as blocking? Precision: does it stay quiet on the clean twin? Graded by tests/run-eval.sh (live jurors).",
   "cases": [
     {
-      "id": "py-sqli",
-      "lane": "code",
-      "juror": "security-juror",
-      "fixture": "examples/sample-target",
-      "base": "main",
-      "planted_defect": "SQL injection via string concatenation in app/handler.py",
-      "expect_blocking": true,
-      "expect_match": ["sql", "inject", "handler.py"]
-    },
-    {
-      "id": "py-failing-test",
+      "id": "correctness-recall",
       "lane": "code",
       "juror": "correctness-juror",
-      "fixture": "examples/sample-target",
+      "fixture": "examples/eval/lanes/correctness/defect",
       "base": "main",
-      "planted_defect": "normalize_email drops .strip(); unit test fails",
+      "planted_defect": "Off-by-one loop bound `range(0, len(items) - size, size)` in chunk() drops the final chunk, so trailing items are silently lost.",
       "expect_blocking": true,
-      "expect_match": ["test", "normalize_email"]
+      "expect_match": [
+        "chunk",
+        "test_chunk_covers_all_items",
+        "off-by-one"
+      ]
     },
     {
-      "id": "tf-public-s3",
-      "lane": "iac",
-      "juror": "terraform-juror",
-      "fixture": "examples/eval/terraform/public-s3",
+      "id": "correctness-clean",
+      "lane": "code",
+      "juror": "correctness-juror",
+      "fixture": "examples/eval/lanes/correctness/clean",
       "base": "main",
-      "planted_defect": "public S3 bucket (public-read ACL, no public_access_block), unencrypted, SG ingress 0.0.0.0/0 on port 22",
-      "expect_blocking": true,
-      "expect_match": ["s3", "public", "0.0.0.0/0", "encrypt"]
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
     },
     {
-      "id": "go-data-race",
+      "id": "security-recall",
+      "lane": "code",
+      "juror": "security-juror",
+      "fixture": "examples/eval/lanes/security/defect",
+      "base": "main",
+      "planted_defect": "SQL injection: untrusted ?id query-string value string-concatenated into a SELECT in UserHandler.do_GET",
+      "expect_blocking": true,
+      "expect_match": [
+        "sql",
+        "inject",
+        "handler.py",
+        "user_id"
+      ]
+    },
+    {
+      "id": "security-clean",
+      "lane": "code",
+      "juror": "security-juror",
+      "fixture": "examples/eval/lanes/security/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "structure-recall",
+      "lane": "code",
+      "juror": "structure-juror",
+      "fixture": "examples/eval/lanes/structure/defect",
+      "base": "main",
+      "planted_defect": "Function named helper2 (a placeholder identifier explicitly banned by CONVENTIONS.md and matched by the juror's naming grep).",
+      "expect_blocking": true,
+      "expect_match": [
+        "helper2",
+        "naming",
+        "convention",
+        "invoicing"
+      ]
+    },
+    {
+      "id": "structure-clean",
+      "lane": "code",
+      "juror": "structure-juror",
+      "fixture": "examples/eval/lanes/structure/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "observability-recall",
+      "lane": "code",
+      "juror": "observability-juror",
+      "fixture": "examples/eval/lanes/observability/defect",
+      "base": "main",
+      "planted_defect": "New outbound-call surface fetch_invoices() wraps urllib.urlopen with no error handling, so a network failure throws an unhandled exception with no error-path logging.",
+      "expect_blocking": true,
+      "expect_match": [
+        "error",
+        "handling",
+        "sync_job",
+        "fetch_invoices"
+      ]
+    },
+    {
+      "id": "observability-clean",
+      "lane": "code",
+      "juror": "observability-juror",
+      "fixture": "examples/eval/lanes/observability/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "interface-compat-recall",
+      "lane": "code",
+      "juror": "interface-compat-juror",
+      "fixture": "examples/eval/lanes/interface-compat/defect",
+      "base": "main",
+      "planted_defect": "Public parseToken retyped from synchronous TokenClaims return to Promise<TokenClaims> (breaking) while package.json version stays 1.4.0 \u2014 breaking change to a published interface with no version bump.",
+      "expect_blocking": true,
+      "expect_match": [
+        "parsetoken",
+        "breaking",
+        "version"
+      ]
+    },
+    {
+      "id": "interface-compat-clean",
+      "lane": "code",
+      "juror": "interface-compat-juror",
+      "fixture": "examples/eval/lanes/interface-compat/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "data-contract-recall",
+      "lane": "pipeline",
+      "juror": "data-contract-juror",
+      "fixture": "examples/eval/lanes/data-contract/defect",
+      "base": "main",
+      "planted_defect": "dim_customers renames contracted column email to email_address while live downstream consumer mart_customer_outreach still selects email, with no version bump or migration.",
+      "expect_blocking": true,
+      "expect_match": [
+        "email",
+        "mart_customer_outreach",
+        "dim_customers",
+        "rename"
+      ]
+    },
+    {
+      "id": "data-contract-clean",
+      "lane": "pipeline",
+      "juror": "data-contract-juror",
+      "fixture": "examples/eval/lanes/data-contract/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "idempotency-recall",
+      "lane": "pipeline",
+      "juror": "idempotency-juror",
+      "fixture": "examples/eval/lanes/idempotency/defect",
+      "base": "main",
+      "planted_defect": "Plain INSERT INTO append into fact_orders re-inserts the same day's rows on every re-run, duplicating data (non-idempotent write).",
+      "expect_blocking": true,
+      "expect_match": [
+        "insert",
+        "duplicate",
+        "append"
+      ]
+    },
+    {
+      "id": "idempotency-clean",
+      "lane": "pipeline",
+      "juror": "idempotency-juror",
+      "fixture": "examples/eval/lanes/idempotency/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "cost-recall",
+      "lane": "pipeline",
+      "juror": "cost-juror",
+      "fixture": "examples/eval/lanes/cost/defect",
+      "base": "main",
+      "planted_defect": "daily_active_users.sql scans the 4 TB date-partitioned analytics.events source with no event_date filter, forcing a full-table scan across ~3 years of history.",
+      "expect_blocking": true,
+      "expect_match": [
+        "partition",
+        "scan",
+        "event_date"
+      ]
+    },
+    {
+      "id": "cost-clean",
+      "lane": "pipeline",
+      "juror": "cost-juror",
+      "fixture": "examples/eval/lanes/cost/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "data-quality-recall",
+      "lane": "pipeline",
+      "juror": "data-quality-juror",
+      "fixture": "examples/eval/lanes/data-quality/defect",
+      "base": "main",
+      "planted_defect": "dim_customer left-joins orders one-to-many (order grain) while declaring unique on customer_id, so the unique data test fails on duplicate primary keys",
+      "expect_blocking": true,
+      "expect_match": [
+        "unique",
+        "customer_id",
+        "duplicate",
+        "dim_customer"
+      ]
+    },
+    {
+      "id": "data-quality-clean",
+      "lane": "pipeline",
+      "juror": "data-quality-juror",
+      "fixture": "examples/eval/lanes/data-quality/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "governance-recall",
+      "lane": "pipeline",
+      "juror": "governance-juror",
+      "fixture": "examples/eval/lanes/governance/defect",
+      "base": "main",
+      "planted_defect": "The email column in the governed dim_customers model has no PII tag, classification, or masking policy in its column meta.",
+      "expect_blocking": true,
+      "expect_match": [
+        "email",
+        "pii",
+        "mask"
+      ]
+    },
+    {
+      "id": "governance-clean",
+      "lane": "pipeline",
+      "juror": "governance-juror",
+      "fixture": "examples/eval/lanes/governance/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "go-concurrency-recall",
       "lane": "go",
       "juror": "go-concurrency-juror",
-      "fixture": "examples/eval/go-race",
+      "fixture": "examples/eval/lanes/go-concurrency/defect",
       "base": "main",
-      "planted_defect": "concurrent writes to a shared map without a lock (go test -race fails)",
+      "planted_defect": "Counter.Add writes shared c.value from N concurrent goroutines with no mutex/atomic, an unsynchronized data race the test exercises.",
       "expect_blocking": true,
-      "expect_match": ["race"]
+      "expect_match": [
+        "data race",
+        "race",
+        "counter.go"
+      ]
+    },
+    {
+      "id": "go-concurrency-clean",
+      "lane": "go",
+      "juror": "go-concurrency-juror",
+      "fixture": "examples/eval/lanes/go-concurrency/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "go-error-handling-recall",
+      "lane": "go",
+      "juror": "go-error-handling-juror",
+      "fixture": "examples/eval/lanes/go-error-handling/defect",
+      "base": "main",
+      "planted_defect": "Save discards the error from w.Write via `_, _ = w.Write(data)` and returns nil, swallowing a fallible write failure.",
+      "expect_blocking": true,
+      "expect_match": [
+        "errcheck",
+        "swallow",
+        "write",
+        "store.go"
+      ]
+    },
+    {
+      "id": "go-error-handling-clean",
+      "lane": "go",
+      "juror": "go-error-handling-juror",
+      "fixture": "examples/eval/lanes/go-error-handling/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "go-performance-recall",
+      "lane": "go",
+      "juror": "go-performance-juror",
+      "fixture": "examples/eval/lanes/go-performance/defect",
+      "base": "main",
+      "planted_defect": "JoinRows builds output via string += concatenation inside nested hot loops (O(n^2) reallocation), instead of strings.Builder.",
+      "expect_blocking": true,
+      "expect_match": [
+        "strings.builder",
+        "concatenation",
+        "loop",
+        "alloc"
+      ]
+    },
+    {
+      "id": "go-performance-clean",
+      "lane": "go",
+      "juror": "go-performance-juror",
+      "fixture": "examples/eval/lanes/go-performance/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "table-format-recall",
+      "lane": "datalake",
+      "juror": "table-format-juror",
+      "fixture": "examples/eval/lanes/table-format/defect",
+      "base": "main",
+      "planted_defect": "ALTER COLUMN amount TYPE int narrows an Iceberg bigint column, an incompatible type narrowing that overflows/truncates existing data and breaks live readers",
+      "expect_blocking": true,
+      "expect_match": [
+        "amount",
+        "narrow",
+        "type",
+        "bigint"
+      ]
+    },
+    {
+      "id": "table-format-clean",
+      "lane": "datalake",
+      "juror": "table-format-juror",
+      "fixture": "examples/eval/lanes/table-format/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "partitioning-layout-recall",
+      "lane": "datalake",
+      "juror": "partitioning-layout-juror",
+      "fixture": "examples/eval/lanes/partitioning-layout/defect",
+      "base": "main",
+      "planted_defect": "Spark write partitions by user_id, a high-cardinality column that explodes the table into millions of tiny files (small-files problem).",
+      "expect_blocking": true,
+      "expect_match": [
+        "user_id",
+        "cardinality",
+        "small-files",
+        "partition"
+      ]
+    },
+    {
+      "id": "partitioning-layout-clean",
+      "lane": "datalake",
+      "juror": "partitioning-layout-juror",
+      "fixture": "examples/eval/lanes/partitioning-layout/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "storage-format-recall",
+      "lane": "datalake",
+      "juror": "storage-format-juror",
+      "fixture": "examples/eval/lanes/storage-format/defect",
+      "base": "main",
+      "planted_defect": "Large analytical fact_events table written in row-oriented CSV format instead of columnar Parquet, defeating predicate pushdown and column pruning.",
+      "expect_blocking": true,
+      "expect_match": [
+        "csv",
+        "columnar",
+        "format",
+        "pushdown"
+      ]
+    },
+    {
+      "id": "storage-format-clean",
+      "lane": "datalake",
+      "juror": "storage-format-juror",
+      "fixture": "examples/eval/lanes/storage-format/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "terraform-recall",
+      "lane": "iac",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/lanes/terraform/defect",
+      "base": "main",
+      "planted_defect": "aws_security_group.bastion allows SSH (port 22) ingress from 0.0.0.0/0",
+      "expect_blocking": true,
+      "expect_match": [
+        "0.0.0.0/0",
+        "22",
+        "ingress",
+        "security_group"
+      ]
+    },
+    {
+      "id": "terraform-clean",
+      "lane": "iac",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/lanes/terraform/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "deployment-recall",
+      "lane": "deploy",
+      "juror": "deployment-juror",
+      "fixture": "examples/eval/lanes/deployment/defect",
+      "base": "main",
+      "planted_defect": "Prod Kargo Stage has no verification AnalysisTemplate, so Freight is promoted to prod ungated.",
+      "expect_blocking": true,
+      "expect_match": [
+        "verification",
+        "prod",
+        "analysistemplate",
+        "stage"
+      ]
+    },
+    {
+      "id": "deployment-clean",
+      "lane": "deploy",
+      "juror": "deployment-juror",
+      "fixture": "examples/eval/lanes/deployment/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "dimensional-modeling-recall",
+      "lane": "data-modeling",
+      "juror": "dimensional-modeling-juror",
+      "fixture": "examples/eval/lanes/dimensional-modeling/defect",
+      "base": "main",
+      "planted_defect": "Header-level order_total carried on the line-item-grain fct_order_lines, double-counting on SUM (Kimball Rule 4 mixed grain).",
+      "expect_blocking": true,
+      "expect_match": [
+        "grain",
+        "order_total",
+        "double",
+        "line"
+      ]
+    },
+    {
+      "id": "dimensional-modeling-clean",
+      "lane": "data-modeling",
+      "juror": "dimensional-modeling-juror",
+      "fixture": "examples/eval/lanes/dimensional-modeling/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "slowly-changing-dimensions-recall",
+      "lane": "data-modeling",
+      "juror": "slowly-changing-dimensions-juror",
+      "fixture": "examples/eval/lanes/slowly-changing-dimensions/defect",
+      "base": "main",
+      "planted_defect": "Type-2 dim MERGE's WHEN MATCHED clause overwrites attribute columns (address/email/segment) in place instead of closing the prior row and inserting a new version, destroying as-was history.",
+      "expect_blocking": true,
+      "expect_match": [
+        "history",
+        "merge",
+        "update",
+        "type-2"
+      ]
+    },
+    {
+      "id": "slowly-changing-dimensions-clean",
+      "lane": "data-modeling",
+      "juror": "slowly-changing-dimensions-juror",
+      "fixture": "examples/eval/lanes/slowly-changing-dimensions/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "normalization-relational-recall",
+      "lane": "data-modeling",
+      "juror": "normalization-relational-juror",
+      "fixture": "examples/eval/lanes/normalization-relational/defect",
+      "base": "main",
+      "planted_defect": "employees carries dept_name and dept_location alongside dept_id, a 3NF transitive dependency (dept_id -> dept_name/dept_location) producing update/insert/delete anomalies on a system-of-record table.",
+      "expect_blocking": true,
+      "expect_match": [
+        "transitive",
+        "dept_id",
+        "dept_name",
+        "3nf"
+      ]
+    },
+    {
+      "id": "normalization-relational-clean",
+      "lane": "data-modeling",
+      "juror": "normalization-relational-juror",
+      "fixture": "examples/eval/lanes/normalization-relational/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "semantic-layer-metrics-recall",
+      "lane": "data-modeling",
+      "juror": "semantic-layer-metrics-juror",
+      "fixture": "examples/eval/lanes/semantic-layer-metrics/defect",
+      "base": "main",
+      "planted_defect": "Semi-additive end-of-day account_balance snapshot measure declared agg: sum with no non_additive_dimension guard, so it sums balances across balance_date and over-reports.",
+      "expect_blocking": true,
+      "expect_match": [
+        "non_additive_dimension",
+        "account_balance",
+        "balance_date",
+        "sum"
+      ]
+    },
+    {
+      "id": "semantic-layer-metrics-clean",
+      "lane": "data-modeling",
+      "juror": "semantic-layer-metrics-juror",
+      "fixture": "examples/eval/lanes/semantic-layer-metrics/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "data-leakage-recall",
+      "lane": "machine-learning",
+      "juror": "data-leakage-juror",
+      "fixture": "examples/eval/lanes/data-leakage/defect",
+      "base": "main",
+      "planted_defect": "StandardScaler.fit_transform and SelectKBest.fit_transform are fit on the full dataset before train_test_split, leaking test rows into preprocessing and supervised feature selection.",
+      "expect_blocking": true,
+      "expect_match": [
+        "fit_transform",
+        "train_test_split",
+        "before",
+        "selectkbest"
+      ]
+    },
+    {
+      "id": "data-leakage-clean",
+      "lane": "machine-learning",
+      "juror": "data-leakage-juror",
+      "fixture": "examples/eval/lanes/data-leakage/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "feature-engineering-recall",
+      "lane": "machine-learning",
+      "juror": "feature-engineering-juror",
+      "fixture": "examples/eval/lanes/feature-engineering/defect",
+      "base": "main",
+      "planted_defect": "Training set built with plain pd.merge on account_id only (no temporal predicate), letting feature values from after the label decision_timestamp leak into training rows.",
+      "expect_blocking": true,
+      "expect_match": [
+        "merge",
+        "point-in-time",
+        "temporal",
+        "account_id"
+      ]
+    },
+    {
+      "id": "feature-engineering-clean",
+      "lane": "machine-learning",
+      "juror": "feature-engineering-juror",
+      "fixture": "examples/eval/lanes/feature-engineering/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "model-evaluation-recall",
+      "lane": "machine-learning",
+      "juror": "model-evaluation-juror",
+      "fixture": "examples/eval/lanes/model-evaluation/defect",
+      "base": "main",
+      "planted_defect": "StandardScaler.fit_transform is called on the full feature matrix before train_test_split, fitting preprocessing outside the train fold and leaking test-set statistics into the reported holdout ROC-AUC.",
+      "expect_blocking": true,
+      "expect_match": [
+        "fit_transform",
+        "before",
+        "split",
+        "leakage"
+      ]
+    },
+    {
+      "id": "model-evaluation-clean",
+      "lane": "machine-learning",
+      "juror": "model-evaluation-juror",
+      "fixture": "examples/eval/lanes/model-evaluation/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "ml-reproducibility-recall",
+      "lane": "machine-learning",
+      "juror": "ml-reproducibility-juror",
+      "fixture": "examples/eval/lanes/ml-reproducibility/defect",
+      "base": "main",
+      "planted_defect": "A registered production model is trained from a mutable s3://datasets/credit/latest/ reference, so the same code/commit can silently train on different data.",
+      "expect_blocking": true,
+      "expect_match": [
+        "latest",
+        "mutable",
+        "snapshot",
+        "dataset"
+      ]
+    },
+    {
+      "id": "ml-reproducibility-clean",
+      "lane": "machine-learning",
+      "juror": "ml-reproducibility-juror",
+      "fixture": "examples/eval/lanes/ml-reproducibility/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "model-serving-mlops-recall",
+      "lane": "machine-learning",
+      "juror": "model-serving-mlops-juror",
+      "fixture": "examples/eval/lanes/model-serving-mlops/defect",
+      "base": "main",
+      "planted_defect": "Serving fillna(0.0) destroys NaN missing-value semantics while XGBoost was trained NaN-aware (missing=np.nan), a silent train/serve skew that changes predictions.",
+      "expect_blocking": true,
+      "expect_match": [
+        "skew",
+        "fillna",
+        "nan",
+        "train/serve"
+      ]
+    },
+    {
+      "id": "model-serving-mlops-clean",
+      "lane": "machine-learning",
+      "juror": "model-serving-mlops-juror",
+      "fixture": "examples/eval/lanes/model-serving-mlops/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "model-monitoring-drift-recall",
+      "lane": "machine-learning",
+      "juror": "model-monitoring-drift-juror",
+      "fixture": "examples/eval/lanes/model-monitoring-drift/defect",
+      "base": "main",
+      "planted_defect": "Feature drift is decided by a bare KS p_value < 0.05 over the full production sample with no effect-size floor, so it fires on trivial shifts as N grows.",
+      "expect_blocking": true,
+      "expect_match": [
+        "p_value",
+        "effect size",
+        "ks",
+        "threshold"
+      ]
+    },
+    {
+      "id": "model-monitoring-drift-clean",
+      "lane": "machine-learning",
+      "juror": "model-monitoring-drift-juror",
+      "fixture": "examples/eval/lanes/model-monitoring-drift/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "statistical-rigor-recall",
+      "lane": "data-science",
+      "juror": "statistical-rigor-juror",
+      "fixture": "examples/eval/lanes/statistical-rigor/defect",
+      "base": "main",
+      "planted_defect": "Ten t-tests over a metric loop declare a launch winner on raw p<0.05 with no multiplicity correction.",
+      "expect_blocking": true,
+      "expect_match": [
+        "multiplicity",
+        "correction",
+        "holm",
+        "p<0.05"
+      ]
+    },
+    {
+      "id": "statistical-rigor-clean",
+      "lane": "data-science",
+      "juror": "statistical-rigor-juror",
+      "fixture": "examples/eval/lanes/statistical-rigor/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "experimentation-abtest-recall",
+      "lane": "data-science",
+      "juror": "experimentation-abtest-juror",
+      "fixture": "examples/eval/lanes/experimentation-abtest/defect",
+      "base": "main",
+      "planted_defect": "Randomization is per user_id but the significance t-test is computed over per-session conversion rows treated as iid, understating variance (unit-of-analysis mismatch).",
+      "expect_blocking": true,
+      "expect_match": [
+        "unit-of-analysis",
+        "session",
+        "user_id",
+        "variance"
+      ]
+    },
+    {
+      "id": "experimentation-abtest-clean",
+      "lane": "data-science",
+      "juror": "experimentation-abtest-juror",
+      "fixture": "examples/eval/lanes/experimentation-abtest/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "causal-inference-recall",
+      "lane": "data-science",
+      "juror": "causal-inference-juror",
+      "fixture": "examples/eval/lanes/causal-inference/defect",
+      "base": "main",
+      "planted_defect": "The OLS adjustment set for the loyalty-enrollment causal effect includes purchases_after_enrollment, a post-treatment mediator on the treatment->outcome path (over-adjustment / post-treatment bias).",
+      "expect_blocking": true,
+      "expect_match": [
+        "post-treatment",
+        "mediator",
+        "purchases_after_enrollment",
+        "over-adjustment"
+      ]
+    },
+    {
+      "id": "causal-inference-clean",
+      "lane": "data-science",
+      "juror": "causal-inference-juror",
+      "fixture": "examples/eval/lanes/causal-inference/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "notebook-productionization-recall",
+      "lane": "data-science",
+      "juror": "notebook-productionization-juror",
+      "fixture": "examples/eval/lanes/notebook-productionization/defect",
+      "base": "main",
+      "planted_defect": "pd.to_numeric(orders['amount'], errors='coerce') silently turns unparseable amounts into NaN that groupby.sum() drops, understating revenue with no error and no schema assertion guarding it",
+      "expect_blocking": true,
+      "expect_match": [
+        "coerce",
+        "to_numeric",
+        "dtype",
+        "nan"
+      ]
+    },
+    {
+      "id": "notebook-productionization-clean",
+      "lane": "data-science",
+      "juror": "notebook-productionization-juror",
+      "fixture": "examples/eval/lanes/notebook-productionization/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "streaming-eventtime-recall",
+      "lane": "data-platforms",
+      "juror": "streaming-eventtime-juror",
+      "fixture": "examples/eval/lanes/streaming-eventtime/defect",
+      "base": "main",
+      "planted_defect": "Event-time windowed aggregation (groupBy window over event_time) with no withWatermark and no TTL, so streaming state grows unbounded and late data is never bounded.",
+      "expect_blocking": true,
+      "expect_match": [
+        "watermark",
+        "unbounded",
+        "state",
+        "window"
+      ]
+    },
+    {
+      "id": "streaming-eventtime-clean",
+      "lane": "data-platforms",
+      "juror": "streaming-eventtime-juror",
+      "fixture": "examples/eval/lanes/streaming-eventtime/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "orchestration-dag-recall",
+      "lane": "data-platforms",
+      "juror": "orchestration-dag-juror",
+      "fixture": "examples/eval/lanes/orchestration-dag/defect",
+      "base": "main",
+      "planted_defect": "Partition DELETE/INSERT date is derived from datetime.now() instead of the logical date, so catchup backfills and retries write the wrong/duplicated partition.",
+      "expect_blocking": true,
+      "expect_match": [
+        "now(",
+        "deterministic",
+        "partition",
+        "backfill"
+      ]
+    },
+    {
+      "id": "orchestration-dag-clean",
+      "lane": "data-platforms",
+      "juror": "orchestration-dag-juror",
+      "fixture": "examples/eval/lanes/orchestration-dag/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "query-performance-sql-recall",
+      "lane": "data-platforms",
+      "juror": "query-performance-sql-juror",
+      "fixture": "examples/eval/lanes/query-performance-sql/defect",
+      "base": "main",
+      "planted_defect": "WHERE date(event_ts)='2026-06-25' wraps the timestamp partition key in a function, defeating partition pruning and forcing a full-table scan.",
+      "expect_blocking": true,
+      "expect_match": [
+        "date(",
+        "event_ts",
+        "pruning",
+        "scan"
+      ]
+    },
+    {
+      "id": "query-performance-sql-clean",
+      "lane": "data-platforms",
+      "juror": "query-performance-sql-juror",
+      "fixture": "examples/eval/lanes/query-performance-sql/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "distributed-compute-spark-recall",
+      "lane": "data-platforms",
+      "juror": "distributed-compute-spark-juror",
+      "fixture": "examples/eval/lanes/distributed-compute-spark/defect",
+      "base": "main",
+      "planted_defect": "Unbounded .toPandas() pulls the full non-aggregated joined orders-x-customers dataframe to the driver, a predictable driver OOM in a production write path.",
+      "expect_blocking": true,
+      "expect_match": [
+        "topandas",
+        "driver",
+        "oom",
+        "collect"
+      ]
+    },
+    {
+      "id": "distributed-compute-spark-clean",
+      "lane": "data-platforms",
+      "juror": "distributed-compute-spark-juror",
+      "fixture": "examples/eval/lanes/distributed-compute-spark/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "algorithmic-complexity-recall",
+      "lane": "ds-and-algorithms",
+      "juror": "algorithmic-complexity-juror",
+      "fixture": "examples/eval/lanes/algorithmic-complexity/defect",
+      "base": "main",
+      "planted_defect": "Per-event membership test against active_user_ids list (`event[\"user_id\"] in active_user_ids`) makes filtering O(N*M) on a data-scaling path where a pre-built set gives O(N).",
+      "expect_blocking": true,
+      "expect_match": [
+        "membership",
+        "set",
+        "list",
+        "o(n"
+      ]
+    },
+    {
+      "id": "algorithmic-complexity-clean",
+      "lane": "ds-and-algorithms",
+      "juror": "algorithmic-complexity-juror",
+      "fixture": "examples/eval/lanes/algorithmic-complexity/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
+    },
+    {
+      "id": "data-structure-selection-recall",
+      "lane": "ds-and-algorithms",
+      "juror": "data-structure-selection-juror",
+      "fixture": "examples/eval/lanes/data-structure-selection/defect",
+      "base": "main",
+      "planted_defect": "approx_count_distinct (HLL sketch) computes billable_seats, an exact-required billing/revenue metric that is multiplied by the per-seat rate on the invoice.",
+      "expect_blocking": true,
+      "expect_match": [
+        "approx_count_distinct",
+        "exact",
+        "billing",
+        "billable_seats"
+      ]
+    },
+    {
+      "id": "data-structure-selection-clean",
+      "lane": "ds-and-algorithms",
+      "juror": "data-structure-selection-juror",
+      "fixture": "examples/eval/lanes/data-structure-selection/clean",
+      "base": "main",
+      "planted_defect": "none (clean twin)",
+      "expect_blocking": false,
+      "expect_match": []
     }
   ]
 }

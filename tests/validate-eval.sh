@@ -29,10 +29,13 @@ for c in cases:
             bad(f"case '{cid}' names unregistered juror '{c['juror']}'")
         elif not os.path.isdir(os.path.join(repo, c["fixture"])):
             bad(f"case '{cid}' fixture missing: {c['fixture']}")
-        elif not isinstance(c["expect_match"], list) or not c["expect_match"]:
-            bad(f"case '{cid}' expect_match must be a non-empty list")
+        elif not isinstance(c["expect_match"], list):
+            bad(f"case '{cid}' expect_match must be a list")
+        elif c["expect_blocking"] and not c["expect_match"]:
+            bad(f"case '{cid}' is a recall case (expect_blocking) but expect_match is empty")
         else:
-            ok(f"case '{cid}': juror '{c['juror']}' + fixture present")
+            kind = "recall" if c["expect_blocking"] else "precision(clean)"
+            ok(f"case '{cid}' [{kind}]: juror '{c['juror']}' + fixture present")
 
 print()
 print(f"== {len(cases)} cases, {'OK' if not fail else str(fail)+' FAILURES'} ==")
