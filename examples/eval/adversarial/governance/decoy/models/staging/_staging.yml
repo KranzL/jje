@@ -1,0 +1,59 @@
+version: 2
+
+sources:
+  - name: fulfillment
+    database: raw
+    schema: fulfillment
+    tables:
+      - name: parcel_scans
+
+models:
+  - name: stg_parcel_scans
+    description: >
+      One row per carrier scan event for a parcel in transit. Joins the public
+      carrier tracking number to the shipment so the ops dashboard can show
+      delivery progress. Recipient identity fields are governed under the
+      customer data policy and masked for non-privileged roles.
+    config:
+      meta:
+        owner: fulfillment-data
+        contains_pii: true
+    columns:
+      - name: scan_key
+        description: Surrogate key, one row per scan event.
+        tests:
+          - unique
+          - not_null
+      - name: scan_id
+        description: Natural key from the carrier scan feed.
+        tests:
+          - not_null
+      - name: shipment_id
+        tests:
+          - not_null
+      - name: carrier_code
+        description: Carrier that produced the scan.
+      - name: recipient_name
+        description: Name on the parcel label.
+        meta:
+          contains_pii: true
+          masking_policy: pii_name
+      - name: recipient_postal
+        description: Postal code on the parcel label.
+        meta:
+          contains_pii: true
+          masking_policy: pii_postal
+      - name: ext_ref
+        description: >
+          Carrier tracking number as printed on the parcel and exposed on the
+          public carrier tracking page. Used to join scan events to shipments.
+        tests:
+          - not_null
+      - name: scan_facility
+        description: Facility code where the scan happened.
+      - name: scan_status
+        description: Carrier status reported at the scan.
+      - name: scanned_at
+        description: Timestamp of the scan event.
+        tests:
+          - not_null

@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: fulfillment
+    database: raw
+    schema: fulfillment
+    tables:
+      - name: shipment_handoffs
+
+models:
+  - name: stg_carrier_handoffs
+    description: >
+      One row per parcel handed off to a carrier. Carries the destination
+      details the carrier needs to deliver and reconcile the parcel against the
+      original order. Recipient identity fields are governed under the customer
+      data policy and masked for non-privileged roles.
+    config:
+      meta:
+        owner: fulfillment-data
+        contains_pii: true
+    columns:
+      - name: handoff_key
+        description: Surrogate key, one row per parcel handoff.
+        tests:
+          - unique
+          - not_null
+      - name: handoff_id
+        description: Natural key from the carrier handoff system.
+        tests:
+          - not_null
+      - name: shipment_id
+        tests:
+          - not_null
+      - name: carrier_code
+        description: Carrier the parcel was handed to.
+      - name: recipient_name
+        description: Name on the parcel label.
+        meta:
+          contains_pii: true
+          masking_policy: pii_name
+      - name: recipient_line1
+        description: First address line on the parcel label.
+        meta:
+          contains_pii: true
+          masking_policy: pii_address
+      - name: recipient_postal
+        description: Postal code on the parcel label.
+        meta:
+          contains_pii: true
+          masking_policy: pii_postal
+      - name: ext_ref
+        description: >
+          Reconciliation reference for the carrier. Set from the contact the
+          customer gave at checkout so the carrier can thread delivery
+          notifications back to the right parcel.
+      - name: weight_grams
+        description: Billable weight of the parcel.
+      - name: declared_value_minor
+        description: Declared customs value in minor units.
+      - name: handed_off_at
+        description: Timestamp the parcel left the warehouse.
+        tests:
+          - not_null

@@ -1,0 +1,71 @@
+semantic_models:
+  - name: order_lines
+    description: >
+      Order line grain fact, one row per SKU per order, enriched with order
+      header context (channel, fulfillment) and per-order economics for
+      downstream channel and cohort reporting.
+    model: ref('fct_order_lines')
+    defaults:
+      agg_time_dimension: ordered_at
+    entities:
+      - name: order_line
+        type: primary
+        expr: order_line_id
+      - name: order
+        type: foreign
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+      - name: product
+        type: foreign
+        expr: product_id
+    dimensions:
+      - name: ordered_at
+        type: time
+        type_params:
+          time_granularity: day
+      - name: sales_channel
+        type: categorical
+      - name: fulfillment_status
+        type: categorical
+      - name: is_first_order
+        type: categorical
+        expr: case when customer_order_seq = 1 then true else false end
+    measures:
+      - name: units_sold
+        description: Quantity of the SKU on the line.
+        agg: sum
+        expr: quantity
+      - name: line_net_revenue
+        description: Net merchandise revenue for the line after line discounts.
+        agg: sum
+        expr: net_line_amount
+      - name: order_freight_charged
+        description: Freight charged to the customer for the order.
+        agg: sum
+        expr: order_freight_amount
+      - name: orders_placed
+        description: Distinct orders represented in the grain.
+        agg: count_distinct
+        expr: order_id
+
+metrics:
+  - name: net_merchandise_revenue
+    description: Net merchandise revenue across all order lines.
+    type: simple
+    type_params:
+      measure: line_net_revenue
+
+  - name: freight_revenue
+    description: Total freight revenue collected from customers.
+    type: simple
+    type_params:
+      measure: order_freight_charged
+
+  - name: units_per_order
+    description: Average basket size in units.
+    type: ratio
+    type_params:
+      numerator: units_sold
+      denominator: orders_placed

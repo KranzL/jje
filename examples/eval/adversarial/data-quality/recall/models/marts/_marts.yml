@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: >
+      Order fact at one row per order. Enriches each order with its captured
+      payment total and the payment method used at checkout. Feeds the finance
+      revenue dashboard, where order_total is summed by day and currency.
+    columns:
+      - name: order_key
+        description: Surrogate key for the order fact.
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Natural key from the source order system.
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: order_total
+        description: Grand total of the order in its currency.
+        tests:
+          - not_null
+      - name: amount_captured
+        description: Sum of captured payment amounts for the order.
+      - name: payment_method
+        description: Payment method used for the order.

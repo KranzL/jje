@@ -1,0 +1,152 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ProjectConfig
+metadata:
+  name: orders
+  namespace: orders
+spec:
+  promotionPolicies:
+  - stageSelector:
+      name: staging
+    autoPromotionEnabled: true
+  - stageSelector:
+      name: prod
+    autoPromotionEnabled: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: orders-images
+  namespace: orders
+spec:
+  subscriptions:
+  - image:
+      repoURL: ghcr.io/acme/orders
+      discoveryLimit: 10
+      imageSelectionStrategy: SemVer
+      semverConstraint: ^3.0.0
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: staging
+  namespace: orders
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: orders-images
+    sources:
+      direct: true
+  verification:
+    analysisTemplates:
+    - name: orders-health-analysis
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/orders-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/staging
+          images:
+          - image: ghcr.io/acme/orders
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote staging"
+      - uses: git-push
+        config:
+          path: ./src
+      - uses: argocd-update
+        config:
+          apps:
+          - name: orders-staging
+      - uses: argocd-wait
+        config:
+          apps:
+          - name: orders-staging
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: orders
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: orders-images
+    sources:
+      stages:
+      - staging
+      requiredSoakTime: 1h
+      availabilityStrategy: All
+  verification:
+    analysisTemplates:
+    - name: orders-health-analysis
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/orders-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/prod
+          images:
+          - image: ghcr.io/acme/orders
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote prod"
+      - uses: git-open-pr
+        config:
+          repoURL: https://github.com/acme/orders-manifests.git
+          createTargetBranch: false
+          sourceBranch: ${{ outputs.commit.branch }}
+          targetBranch: main
+      - uses: git-wait-for-pr
+        config:
+          repoURL: https://github.com/acme/orders-manifests.git
+          prNumber: ${{ outputs['open-pr'].prNumber }}
+      - uses: argocd-update
+        config:
+          apps:
+          - name: orders-prod
+            sources:
+            - repoURL: https://github.com/acme/orders-manifests.git
+              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
+      - uses: argocd-wait
+        config:
+          apps:
+          - name: orders-prod
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: orders-health-analysis
+  namespace: orders
+spec:
+  args:
+  - name: app
+    value: orders
+  metrics:
+  - name: success-rate
+    interval: 1m
+    count: 5
+    successCondition: result[0] >= 0.995
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc:9090
+        query: |
+          sum(rate(http_requests_total{app="{{args.app}}",code=~"2.."}[5m]))
+          /
+          sum(rate(http_requests_total{app="{{args.app}}"}[5m]))

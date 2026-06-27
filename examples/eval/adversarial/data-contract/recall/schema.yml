@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: fct_invoice_lines
+    description: >
+      One row per invoice line, with local amounts converted to USD at the
+      event-time FX rate. Consumed by distributor settlement and downstream
+      revenue recognition.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: invoice_line_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+          - type: primary_key
+      - name: invoice_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+      - name: product_sku
+        data_type: varchar
+        constraints:
+          - type: not_null
+      - name: billing_country
+        data_type: varchar
+      - name: quantity
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: discount_usd
+        data_type: decimal(18, 2)
+      - name: gross_unit_price_usd
+        data_type: decimal(18, 2)
+        constraints:
+          - type: not_null
+      - name: extended_amount_usd
+        data_type: decimal(18, 2)
+        constraints:
+          - type: not_null
+
+  - name: mart_distributor_settlement
+    description: Settlement amounts owed per country and SKU.
+    columns:
+      - name: billing_country
+        data_type: varchar
+      - name: product_sku
+        data_type: varchar
+      - name: units_settled
+        data_type: bigint
+      - name: gross_settlement_usd
+        data_type: decimal(38, 2)
+      - name: net_settlement_usd
+        data_type: decimal(38, 2)

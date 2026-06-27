@@ -1,0 +1,765 @@
+{
+  "description": "Adversarial eval: subtle disguised defects (recall, semantic-judged) + guilty-looking decoys (precision). Fixtures authored blind to the review skills.",
+  "cases": [
+    {
+      "id": "correctness-adv-recall",
+      "juror": "correctness-juror",
+      "fixture": "examples/eval/adversarial/correctness/recall",
+      "kind": "adv-recall",
+      "planted_defect": "SessionIndex._split uses a strict `< cutoff` comparison instead of `<= cutoff`, so a session whose age exactly equals the horizon (expired per the documented contract) is wrongly kept active and never evicted.",
+      "expect_match": [
+        "off-by-one",
+        "boundary equality",
+        "inclusive vs strict comparison",
+        "expiration cutoff"
+      ]
+    },
+    {
+      "id": "correctness-decoy",
+      "juror": "correctness-juror",
+      "fixture": "examples/eval/adversarial/correctness/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "band_for uses the suspicious `(lo + hi + 1) // 2` upper-mid with `lo = mid` (no +1) and `hi = mid - 1`, which pattern-matches as an off-by-one and a potential infinite loop, but is the correct rightmost-<= binary-search idiom."
+    },
+    {
+      "id": "security-adv-recall",
+      "juror": "security-juror",
+      "fixture": "examples/eval/adversarial/security/recall",
+      "kind": "adv-recall",
+      "planted_defect": "SQL injection: attacker-controlled JSON 'where' keys are interpolated as column identifiers in build_lookup, so even though values use ? placeholders the field names reach the SQL unescaped.",
+      "expect_match": [
+        "sql injection",
+        "column name",
+        "filter key",
+        "identifier interpolation"
+      ]
+    },
+    {
+      "id": "security-decoy",
+      "juror": "security-juror",
+      "fixture": "examples/eval/adversarial/security/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same dynamic-WHERE builder f-strings a {column} straight into the SQL from user-supplied filter fields, but the column only ever resolves through the server-side COLUMN_BINDINGS allowlist and unknown fields are skipped, so it is actually safe."
+    },
+    {
+      "id": "structure-adv-recall",
+      "juror": "structure-juror",
+      "fixture": "examples/eval/adversarial/structure/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The domain layer (billing/domain/charges.py) directly imports the infra/persistence package (billing/infra/rates.py, a sqlite-backed tax-rate lookup) via a deferred in-method import, inverting the allowed dependency direction.",
+      "expect_match": [
+        "domain imports infrastructure",
+        "dependency direction inversion",
+        "layering boundary violation",
+        "persistence coupling in core"
+      ]
+    },
+    {
+      "id": "structure-decoy",
+      "juror": "structure-juror",
+      "fixture": "examples/eval/adversarial/structure/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "The domain's ChargeCalculator imports a type named RateRepository and talks to a sqlite-backed rate source, which at a glance looks like the core reaching into the database, but RateRepository is a Protocol port defined inside the domain and the sqlite implementation lives in infra depending on domain (correct dependency-inversion direction)."
+    },
+    {
+      "id": "observability-adv-recall",
+      "juror": "observability-juror",
+      "fixture": "examples/eval/adversarial/observability/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The except block around the external provider POST swallows the failure (only bumps attempts and continues) with no log/metric/traceback, so delivery failures are invisible while only the happy path is logged.",
+      "expect_match": [
+        "swallowed error",
+        "silent failure",
+        "error path not logged",
+        "external call"
+      ]
+    },
+    {
+      "id": "observability-decoy",
+      "juror": "observability-juror",
+      "fixture": "examples/eval/adversarial/observability/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same broad except Exception plus continue around an external POST in a batch loop with loud happy-path logging, but the failure path actually logs via logger.exception, increments a failure metric, and reschedules with dead-lettering."
+    },
+    {
+      "id": "interface-compat-adv-recall",
+      "juror": "interface-compat-juror",
+      "fixture": "examples/eval/adversarial/interface-compat/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The shared DocumentId alias was narrowed from string|number to string, breaking documented numeric-id callers in input positions (folderId, getDocument, MoveParams) while runtime String() coercion and a non-breaking 2.4.0 minor bump hide it.",
+      "expect_match": [
+        "narrowed input type",
+        "numeric ids no longer accepted",
+        "breaking change",
+        "backward compatibility"
+      ]
+    },
+    {
+      "id": "interface-compat-decoy",
+      "juror": "interface-compat-juror",
+      "fixture": "examples/eval/adversarial/interface-compat/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "A public union type alias (EventStatus) appears to have dropped a member, resembling a breaking enum narrowing, but it is consumed only in the returned DeliveryReport (output/covariant position), so no caller's code is broken."
+    },
+    {
+      "id": "data-contract-adv-recall",
+      "juror": "data-contract-juror",
+      "fixture": "examples/eval/adversarial/data-contract/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Contracted gross_unit_price_usd is published at decimal(18,2), narrowing the scale of an FX-converted per-unit price (source list_price_local decimal(18,6) * fx_rate decimal(18,8)) that the downstream settlement mart re-multiplies by quantity, so the per-unit cent-truncation compounds into material amount drift.",
+      "expect_match": [
+        "scale reduction",
+        "truncation",
+        "consumed downstream column",
+        "aggregation amount drift"
+      ]
+    },
+    {
+      "id": "data-contract-decoy",
+      "juror": "data-contract-juror",
+      "fixture": "examples/eval/adversarial/data-contract/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It applies round(...,2) and casts to decimal(18,2) on an FX-converted money column and changes the discount type, which scans as a lossy scale reduction, but the consumed gross_unit_price_usd stays decimal(18,6) full precision and the (18,2) value is an additive new display-only column, while discount_usd is widened (18,6) not narrowed."
+    },
+    {
+      "id": "idempotency-adv-recall",
+      "juror": "idempotency-juror",
+      "fixture": "examples/eval/adversarial/idempotency/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The dedup_key hash folds in ingested_at (a per-run CURRENT_TIMESTAMP), so every re-run computes a new key and ON CONFLICT DO NOTHING never fires, duplicating the same logical events.",
+      "expect_match": [
+        "non-deterministic dedup key",
+        "run timestamp in surrogate key",
+        "on conflict never matches on rerun",
+        "duplicate rows accumulate"
+      ]
+    },
+    {
+      "id": "idempotency-decoy",
+      "juror": "idempotency-juror",
+      "fixture": "examples/eval/adversarial/idempotency/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It has the same CURRENT_TIMESTAMP batch CTE feeding a per-row timestamp and an ON CONFLICT clause, but the dedup_key hashes only the stable natural key (order_id, event_type, occurred_at) and the run timestamp lands solely in the non-key loaded_at audit column, so re-runs are idempotent."
+    },
+    {
+      "id": "cost-adv-recall",
+      "juror": "cost-juror",
+      "fixture": "examples/eval/adversarial/cost/recall",
+      "kind": "adv-recall",
+      "planted_defect": "WHERE cast(e.dt AS date) BETWEEN ... wraps the partition column dt in a CAST, silently defeating partition pruning and forcing a full-table scan",
+      "expect_match": [
+        "partition pruning",
+        "cast on partition column",
+        "full scan",
+        "sargable"
+      ]
+    },
+    {
+      "id": "cost-decoy",
+      "juror": "cost-juror",
+      "fixture": "examples/eval/adversarial/cost/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It is dense with CAST and date_trunc calls and a date-range filter, but the partition column dt is compared bare to pre-formatted string bounds so pruning still works; the casts are only on non-partition data columns"
+    },
+    {
+      "id": "data-quality-adv-recall",
+      "juror": "data-quality-juror",
+      "fixture": "examples/eval/adversarial/data-quality/recall",
+      "kind": "adv-recall",
+      "planted_defect": "fct_orders left-joins stg_payments at payment grain to grab payment_method/gateway, fanning out the declared one-row-per-order grain for orders with >1 captured payment and double-counting order_total, while the unique test passes because the surrogate key is built from order_id AND payment_id.",
+      "expect_match": [
+        "fan-out",
+        "grain",
+        "double-count",
+        "payment"
+      ]
+    },
+    {
+      "id": "data-quality-decoy",
+      "juror": "data-quality-juror",
+      "fixture": "examples/eval/adversarial/data-quality/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It also left-joins a per-payment detail to a per-order fact to pull payment_method/gateway, which superficially reads as a grain-violating fan-out, but a row_number() = 1 primary_payment CTE collapses payments to exactly one row per order so the order grain is preserved."
+    },
+    {
+      "id": "governance-adv-recall",
+      "juror": "governance-juror",
+      "fixture": "examples/eval/adversarial/governance/recall",
+      "kind": "adv-recall",
+      "planted_defect": "ext_ref holds the customer's checkout contact (email/phone) but is left without a contains_pii/masking_policy tag while every other recipient column is masked, so PII flows unmasked and ungoverned.",
+      "expect_match": [
+        "unmasked pii",
+        "untagged contact field",
+        "masking policy missing",
+        "personal data exposure"
+      ]
+    },
+    {
+      "id": "governance-decoy",
+      "juror": "governance-juror",
+      "fixture": "examples/eval/adversarial/governance/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same innocuously-named ext_ref column left untagged among masked recipient PII columns, but here it is the public carrier tracking number printed on the parcel, not personal data, so leaving it unmasked is correct."
+    },
+    {
+      "id": "go-concurrency-adv-recall",
+      "juror": "go-concurrency-juror",
+      "fixture": "examples/eval/adversarial/go-concurrency/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Watch reads len(c.hits) without holding c.mu while Record mutates c.hits under the lock, a concurrent map read/write data race.",
+      "expect_match": [
+        "data race",
+        "concurrent map access",
+        "unsynchronized read",
+        "missing lock"
+      ]
+    },
+    {
+      "id": "go-concurrency-decoy",
+      "juror": "go-concurrency-juror",
+      "fixture": "examples/eval/adversarial/go-concurrency/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "A shared map (ix.offsets) is read from many goroutines with no mutex and a slice is written from those goroutines, but it is safe: the map is built once and never mutated after Build, and each goroutine writes a disjoint slice index, all joined by WaitGroup."
+    },
+    {
+      "id": "go-error-handling-adv-recall",
+      "juror": "go-error-handling-juror",
+      "fixture": "examples/eval/adversarial/go-error-handling/recall",
+      "kind": "adv-recall",
+      "planted_defect": "resolve() wraps the ErrLeaseExpired sentinel with %v instead of %w, so errors.Is in RenewOrAcquire never matches and expired leases are not re-acquired",
+      "expect_match": [
+        "%v instead of %w",
+        "errors.is",
+        "unwrap chain",
+        "sentinel"
+      ]
+    },
+    {
+      "id": "go-error-handling-decoy",
+      "juror": "go-error-handling-juror",
+      "fixture": "examples/eval/adversarial/go-error-handling/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "uses fmt.Sprintf(\"%v\", err) on an error and logs an error before returning, resembling broken wrapping / log-and-swallow, but the chain is preserved via %w and the error is still returned"
+    },
+    {
+      "id": "go-performance-adv-recall",
+      "juror": "go-performance-juror",
+      "fixture": "examples/eval/adversarial/go-performance/recall",
+      "kind": "adv-recall",
+      "planted_defect": "regexp.MustCompile is called inside the per-batch inner loop for static literal patterns, recompiling the same regexes on every sample instead of compiling once.",
+      "expect_match": [
+        "regexp compilation in loop",
+        "hoist compile out of hot path",
+        "recompile per iteration",
+        "precompile once"
+      ]
+    },
+    {
+      "id": "go-performance-decoy",
+      "juror": "go-performance-juror",
+      "fixture": "examples/eval/adversarial/go-performance/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same labelRules map and nested per-sample loop calling ReplaceAllString on regexes, so it superficially reads as regex work in a hot loop, but every pattern is compiled exactly once at package init via mustRules and only reused inside the loop."
+    },
+    {
+      "id": "table-format-adv-recall",
+      "juror": "table-format-juror",
+      "fixture": "examples/eval/adversarial/table-format/recall",
+      "kind": "adv-recall",
+      "planted_defect": "ALTER COLUMN unit_price TYPE DECIMAL(10,4) on a Delta table raises scale 2->4 while holding precision at 10, shrinking integer-digit capacity (8->6) \u2014 not a Delta type-widening-supported change, so it requires a full table rewrite and will fail/corrupt as an in-place evolution.",
+      "expect_match": [
+        "decimal scale change",
+        "unsupported type widening",
+        "table rewrite",
+        "integer digit loss"
+      ]
+    },
+    {
+      "id": "table-format-decoy",
+      "juror": "table-format-juror",
+      "fixture": "examples/eval/adversarial/table-format/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It alters two Delta decimal columns' scale (2->4) and widens an int to bigint in place, reading at a glance like an unevolvable type change \u2014 but growing precision 10->12 alongside scale preserves integer digits, so it is a supported Delta type-widening change."
+    },
+    {
+      "id": "partitioning-layout-adv-recall",
+      "juror": "partitioning-layout-juror",
+      "fixture": "examples/eval/adversarial/partitioning-layout/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Partition column event_hour is populated via from_unixtime(..., 'yyyyMMddHHmmss'), giving one partition per second (near-unique), causing a small-files explosion.",
+      "expect_match": [
+        "small files",
+        "high-cardinality partition key",
+        "second-precision granularity",
+        "partition per second"
+      ]
+    },
+    {
+      "id": "partitioning-layout-decoy",
+      "juror": "partitioning-layout-juror",
+      "fixture": "examples/eval/adversarial/partitioning-layout/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Partitions on an event_hour derived from a timestamp and clusters on the high-cardinality account_id, which scans like fine-grained timestamp partitioning, but event_hour is hour() bounded to 0-23 and account_id is bucketed into a fixed 64 buckets, so file count is bounded."
+    },
+    {
+      "id": "storage-format-adv-recall",
+      "juror": "storage-format-juror",
+      "fixture": "examples/eval/adversarial/storage-format/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Primary date filter column on a large analytical table is stored as a non-sortable MM/dd/yyyy string and the data is sorted by merchant_name, so Parquet row-group min/max stats are useless and date-range predicate pushdown is defeated.",
+      "expect_match": [
+        "predicate pushdown",
+        "string-typed date filter column",
+        "row-group min-max statistics",
+        "date range pruning"
+      ]
+    },
+    {
+      "id": "storage-format-decoy",
+      "juror": "storage-format-juror",
+      "fixture": "examples/eval/adversarial/storage-format/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Also derives a string date column via date_format and writes Parquet, but the string dt is an ISO yyyy-MM-dd Hive partition key (path-based pruning) while the typed event_ts is retained, range-partitioned, and sorted for real pushdown."
+    },
+    {
+      "id": "terraform-adv-recall",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/adversarial/terraform/recall",
+      "kind": "adv-recall",
+      "planted_defect": "data_store SG trusts the ops_agent SG as a Postgres source, but ops_agent allows SSH (22) ingress from 0.0.0.0/0, making the database tier reachable from any internet-exposed pivot host in that SG",
+      "expect_match": [
+        "transitive security group exposure",
+        "0.0.0.0/0 ingress",
+        "database reachable from internet",
+        "referenced source security group is world-open"
+      ]
+    },
+    {
+      "id": "terraform-decoy",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/adversarial/terraform/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Identical SG-to-SG chaining into a Postgres data_store plus a literal 0.0.0.0/0 ingress in the file, but the only world-open rule is the public ALB on 443 (legitimate) and the ops_agent source SG restricts SSH to corporate CIDRs, so the chain is safe"
+    },
+    {
+      "id": "deployment-adv-recall",
+      "juror": "deployment-juror",
+      "fixture": "examples/eval/adversarial/deployment/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The prod Stage auto-promotes from staging with no verification block of its own; only the staging Stage runs an AnalysisTemplate gate, so freight reaches prod ungated.",
+      "expect_match": [
+        "missing prod verification",
+        "auto-promotion to prod",
+        "ungated promotion",
+        "staging-only gate"
+      ]
+    },
+    {
+      "id": "deployment-decoy",
+      "juror": "deployment-juror",
+      "fixture": "examples/eval/adversarial/deployment/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Prod has autoPromotionEnabled: true and sources straight from staging with the same soak/argocd-wait shape, so it reads like an ungated auto-promote to prod, but the prod Stage actually carries its own verification AnalysisTemplate so every promotion is gated."
+    },
+    {
+      "id": "dimensional-modeling-adv-recall",
+      "juror": "dimensional-modeling-juror",
+      "fixture": "examples/eval/adversarial/dimensional-modeling/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Order-header freight_charge_amount is carried unchanged onto a line-grain fact, so it repeats per line and overcounts when summed.",
+      "expect_match": [
+        "grain mismatch",
+        "double counting",
+        "non-additive",
+        "header-level measure"
+      ]
+    },
+    {
+      "id": "dimensional-modeling-decoy",
+      "juror": "dimensional-modeling-juror",
+      "fixture": "examples/eval/adversarial/dimensional-modeling/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It also places order-level freight on a line-grain fact, but allocates it proportionally to each line so the measure is fully additive and reconstructs the order total."
+    },
+    {
+      "id": "slowly-changing-dimensions-adv-recall",
+      "juror": "slowly-changing-dimensions-juror",
+      "fixture": "examples/eval/adversarial/slowly-changing-dimensions/recall",
+      "kind": "adv-recall",
+      "planted_defect": "as-of join uses BETWEEN valid_from AND valid_to while valid_to = lead(effective_at) (shared boundary), so events at a version boundary match two plan rows and duplicate fact rows",
+      "expect_match": [
+        "overlapping interval boundary",
+        "inclusive between duplicate rows",
+        "as-of join fan-out",
+        "non-disjoint valid_to valid_from"
+      ]
+    },
+    {
+      "id": "slowly-changing-dimensions-decoy",
+      "juror": "slowly-changing-dimensions-juror",
+      "fixture": "examples/eval/adversarial/slowly-changing-dimensions/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "uses the classic-looking BETWEEN valid_from AND valid_to inclusive predicate, but valid_to is closed one microsecond before the next version starts so the intervals are disjoint and no duplicates occur"
+    },
+    {
+      "id": "normalization-relational-adv-recall",
+      "juror": "normalization-relational-juror",
+      "fixture": "examples/eval/adversarial/normalization-relational/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Surrogate id PK on subscription_seats with no UNIQUE on the natural key (account_id, member_id) \u2014 only a non-unique composite index \u2014 so the same member can be granted duplicate seats under one account (double billing).",
+      "expect_match": [
+        "duplicate rows",
+        "missing unique constraint",
+        "natural key",
+        "surrogate key"
+      ]
+    },
+    {
+      "id": "normalization-relational-decoy",
+      "juror": "normalization-relational-juror",
+      "fixture": "examples/eval/adversarial/normalization-relational/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Identical surrogate-id-PK-on-a-junction-table shape with the natural-key uniqueness enforced by a CREATE UNIQUE INDEX placed after the CREATE TABLE body, so a quick scan of the table body sees no UNIQUE and may wrongly flag duplicate (product_id, tag_id) pairs."
+    },
+    {
+      "id": "semantic-layer-metrics-adv-recall",
+      "juror": "semantic-layer-metrics-juror",
+      "fixture": "examples/eval/adversarial/semantic-layer-metrics/recall",
+      "kind": "adv-recall",
+      "planted_defect": "order_freight_charged sums order_freight_amount (an order-header value repeated on every line row) inside an order-line-grain semantic model, so freight_revenue is inflated by the number of lines per order.",
+      "expect_match": [
+        "fan-out",
+        "double-count",
+        "grain",
+        "non-additive"
+      ]
+    },
+    {
+      "id": "semantic-layer-metrics-decoy",
+      "juror": "semantic-layer-metrics-juror",
+      "fixture": "examples/eval/adversarial/semantic-layer-metrics/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It also sums order_freight_amount and exposes a ratio metric over the freight measure, mirroring the recall, but the semantic model is built on fct_orders at one-row-per-order grain so the freight sum is fully additive and correct."
+    },
+    {
+      "id": "data-leakage-adv-recall",
+      "juror": "data-leakage-juror",
+      "fixture": "examples/eval/adversarial/data-leakage/recall",
+      "kind": "adv-recall",
+      "planted_defect": "segment_default_rate is a target mean computed via groupby over the full dataset before CV, so each fold's training rows carry the validation rows' outcomes; StandardScaler is correctly inside the Pipeline as a distractor.",
+      "expect_match": [
+        "target leakage",
+        "target mean encoding fit on full data",
+        "computed before cross-validation split",
+        "out-of-fold encoding"
+      ]
+    },
+    {
+      "id": "data-leakage-decoy",
+      "juror": "data-leakage-juror",
+      "fixture": "examples/eval/adversarial/data-leakage/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It also builds a segment_default_rate from the target via a groupby mean, but the encoder is a transformer inside the ColumnTransformer/Pipeline so it is refit on training folds only and never sees validation outcomes."
+    },
+    {
+      "id": "feature-engineering-adv-recall",
+      "juror": "feature-engineering-juror",
+      "fixture": "examples/eval/adversarial/feature-engineering/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The point-in-time merge_asof anchors on entity event_timestamp = outcome_observed_at (the label observation time) instead of decision_at, so each row pulls the most recent credit metrics as of loan resolution, leaking all post-decision borrower behavior.",
+      "expect_match": [
+        "leakage",
+        "label timestamp",
+        "decision time",
+        "as-of join"
+      ]
+    },
+    {
+      "id": "feature-engineering-decoy",
+      "juror": "feature-engineering-juror",
+      "fixture": "examples/eval/adversarial/feature-engineering/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same merge_asof shape that carries outcome_observed_at and a computed label_horizon_days right next to the join, so it looks like features are pulled as-of the label time, but the asof key is decision_at with allow_exact_matches=False, making it correctly point-in-time."
+    },
+    {
+      "id": "model-evaluation-adv-recall",
+      "juror": "model-evaluation-juror",
+      "fixture": "examples/eval/adversarial/model-evaluation/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The classification operating threshold is selected by maximizing F1 over the test fold and then the headline precision/recall/F1 are reported on that same test fold.",
+      "expect_match": [
+        "threshold tuned on test",
+        "selection leakage",
+        "optimistic test metrics",
+        "no held-out validation for threshold"
+      ]
+    },
+    {
+      "id": "model-evaluation-decoy",
+      "juror": "model-evaluation-juror",
+      "fixture": "examples/eval/adversarial/model-evaluation/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It runs the identical F1-maximizing threshold sweep that resembles tuning on the eval set, but the sweep is fit on a separate validation split carved from training data and the untouched test fold is only scored once at the chosen threshold."
+    },
+    {
+      "id": "ml-reproducibility-adv-recall",
+      "juror": "ml-reproducibility-juror",
+      "fixture": "examples/eval/adversarial/ml-reproducibility/recall",
+      "kind": "adv-recall",
+      "planted_defect": "CPU RNGs (random/numpy/torch.manual_seed) are seeded but the GPU/parallel chain is not: no torch.cuda.manual_seed_all, cudnn.benchmark=True with no deterministic mode, and DataLoader workers have no worker_init_fn so per-worker numpy augmentation RNG is unseeded.",
+      "expect_match": [
+        "cuda seed",
+        "cudnn nondeterminism",
+        "dataloader worker seeding",
+        "gpu reproducibility"
+      ]
+    },
+    {
+      "id": "ml-reproducibility-decoy",
+      "juror": "ml-reproducibility-juror",
+      "fixture": "examples/eval/adversarial/ml-reproducibility/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Dataset calls np.random in __getitem__ with num_workers>0 and _seed_everything appears to only seed random/numpy at a glance, which mimics the classic partial-seed/worker-fork duplication bug, but the full torch/cuda/cudnn chain plus a per-worker worker_init_fn reseed make it actually deterministic."
+    },
+    {
+      "id": "model-serving-mlops-adv-recall",
+      "juror": "model-serving-mlops-juror",
+      "fixture": "examples/eval/adversarial/model-serving-mlops/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Serving fills missing continuous features with 0.0 before the model, defeating the pipeline's fitted median imputer used in training, causing train/serve skew.",
+      "expect_match": [
+        "train/serve skew",
+        "imputation mismatch",
+        "missing value handling",
+        "zero fill"
+      ]
+    },
+    {
+      "id": "model-serving-mlops-decoy",
+      "juror": "model-serving-mlops-juror",
+      "fixture": "examples/eval/adversarial/model-serving-mlops/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It also default-fills missing fields and looks like the same hardcoded-fill anti-pattern, but it passes np.nan for continuous features so the model's own imputer handles them consistently and only uses 0 for count fields where absence truly means zero."
+    },
+    {
+      "id": "model-monitoring-drift-adv-recall",
+      "juror": "model-monitoring-drift-juror",
+      "fixture": "examples/eval/adversarial/model-monitoring-drift/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Monitor scores only input-feature PSI yet reports coverage='full' and gates retraining on it, with no label/prior-drift or model-performance signal even though ground-truth labels lag 30 days",
+      "expect_match": [
+        "input feature drift only",
+        "no performance or label monitoring",
+        "label lag ground truth",
+        "false coverage claim"
+      ]
+    },
+    {
+      "id": "model-monitoring-drift-decoy",
+      "juror": "model-monitoring-drift-juror",
+      "fixture": "examples/eval/adversarial/model-monitoring-drift/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Heavy feature-PSI machinery up front looks like input-only drift monitoring, but it also joins matured labels to compute label-prior PSI and rolling AUC and honestly marks coverage='input_only' when labels are unavailable"
+    },
+    {
+      "id": "statistical-rigor-adv-recall",
+      "juror": "statistical-rigor-juror",
+      "fixture": "examples/eval/adversarial/statistical-rigor/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Runs the same t-test across 7 regional subgroups, sorts by p-value, and reports the single region crossing p<0.05 with no multiplicity/family-wise-error correction.",
+      "expect_match": [
+        "multiple comparisons",
+        "no multiplicity correction",
+        "cherry-picked subgroup",
+        "family-wise error"
+      ]
+    },
+    {
+      "id": "statistical-rigor-decoy",
+      "juror": "statistical-rigor-juror",
+      "fixture": "examples/eval/adversarial/statistical-rigor/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Loops a t-test over 6 secondary metrics and filters at alpha=0.05, looking like uncorrected multiple testing, but it actually applies Benjamini-Hochberg FDR control and reports only adjusted q-value rejections."
+    },
+    {
+      "id": "experimentation-abtest-adv-recall",
+      "juror": "experimentation-abtest-juror",
+      "fixture": "examples/eval/adversarial/experimentation-abtest/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Randomization is per-user but variance/SE/CI/p-value are computed over session-grain rows, treating correlated within-user sessions as independent and understating the standard error.",
+      "expect_match": [
+        "analysis unit",
+        "clustering",
+        "understated standard error",
+        "session versus user grain"
+      ]
+    },
+    {
+      "id": "experimentation-abtest-decoy",
+      "juror": "experimentation-abtest-juror",
+      "fixture": "examples/eval/adversarial/experimentation-abtest/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Operates on a session-level dataframe with the same sqrt(var/n) z-test, but collapse_to_user aggregates to one row per user before inference, so the analysis unit correctly matches the per-user randomization."
+    },
+    {
+      "id": "causal-inference-adv-recall",
+      "juror": "causal-inference-juror",
+      "fixture": "examples/eval/adversarial/causal-inference/recall",
+      "kind": "adv-recall",
+      "planted_defect": "adoption_index is built from product events in the 60 days AFTER the outreach touch_date, so the adjustment set conditions on a post-treatment mediator/collider, biasing the estimated treatment effect.",
+      "expect_match": [
+        "post-treatment",
+        "mediator",
+        "collider",
+        "adjustment set"
+      ]
+    },
+    {
+      "id": "causal-inference-decoy",
+      "juror": "causal-inference-juror",
+      "fixture": "examples/eval/adversarial/causal-inference/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Same IPW/GLM structure includes adoption_index in the adjustment set, which reads like controlling for a downstream adoption mediator, but the window is the 60 days BEFORE touch_date so it is a legitimate pre-treatment baseline confounder."
+    },
+    {
+      "id": "notebook-productionization-adv-recall",
+      "juror": "notebook-productionization-juror",
+      "fixture": "examples/eval/adversarial/notebook-productionization/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The sessionization cell (document position 4, execution_count 8) was actually run AFTER the dedupe/tz-strip cell below it (position 5, execution_count 5), so on the author's kernel `sessionized` was built from deduplicated events; a cold top-to-bottom papermill run consumes the non-deduplicated `events`, silently inflating session/event counts and producing non-reproducible output.",
+      "expect_match": [
+        "out-of-order execution",
+        "hidden kernel state",
+        "non-monotonic execution_count",
+        "cold-run reproducibility"
+      ]
+    },
+    {
+      "id": "notebook-productionization-decoy",
+      "juror": "notebook-productionization-juror",
+      "fixture": "examples/eval/adversarial/notebook-productionization/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Execution counts are non-monotonic (a describe/value_counts cell at position 4 carries execution_count 9, higher than the aggregation and write cells below it), which looks like an out-of-order hidden-state defect, but that cell is a pure read-only diagnostic that mutates nothing, so a cold top-to-bottom run reproduces identical output."
+    },
+    {
+      "id": "streaming-eventtime-adv-recall",
+      "juror": "streaming-eventtime-juror",
+      "fixture": "examples/eval/adversarial/streaming-eventtime/recall",
+      "kind": "adv-recall",
+      "planted_defect": "Watermark and 5-minute window are keyed on event_ts, which is aliased from the Kafka message arrival/ingest timestamp (F.col('timestamp')), not the true event time requested_at which is parsed but never used in the aggregation.",
+      "expect_match": [
+        "watermark on ingest/arrival time not event time",
+        "window keyed on processing time",
+        "requested_at event time ignored",
+        "late-data and replay correctness"
+      ]
+    },
+    {
+      "id": "streaming-eventtime-decoy",
+      "juror": "streaming-eventtime-juror",
+      "fixture": "examples/eval/adversarial/streaming-eventtime/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It carries a Kafka broker_ts and a current_timestamp() ingested_at column right beside the windowing and aggregates them, so it resembles a processing-time watermark, but the watermark and window are correctly bound to ts = to_timestamp(occurred_at), the real event time."
+    },
+    {
+      "id": "orchestration-dag-adv-recall",
+      "juror": "orchestration-dag-juror",
+      "fixture": "examples/eval/adversarial/orchestration-dag/recall",
+      "kind": "adv-recall",
+      "planted_defect": "snapshot_campaign_spend calls the shared _hive_partition() helper with no argument, so it falls into the datetime.utcnow().date() default branch and writes to today's wall-clock partition instead of the run's logical {{ ds }}, breaking backfill determinism (all other tasks correctly pass ds).",
+      "expect_match": [
+        "nondeterministic partition",
+        "datetime.now/utcnow",
+        "backfill",
+        "logical date"
+      ]
+    },
+    {
+      "id": "orchestration-dag-decoy",
+      "juror": "orchestration-dag-juror",
+      "fixture": "examples/eval/adversarial/orchestration-dag/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "build_stockout_risk and stage_inventory_levels visibly call datetime.now()/pendulum.now() right next to the partition-building code, but those wall-clock values feed only audit columns (loaded_at/computed_at) while the partition itself is derived purely from data_interval_start/{{ ds }}, so it is deterministic under backfill."
+    },
+    {
+      "id": "query-performance-sql-adv-recall",
+      "juror": "query-performance-sql-juror",
+      "fixture": "examples/eval/adversarial/query-performance-sql/recall",
+      "kind": "adv-recall",
+      "planted_defect": "The day-window filter applies AT TIME ZONE to the indexed created_at column (created_at AT TIME ZONE ...) >= / < bounds, so the expression on the column is non-sargable and idx_tickets_created_at cannot be used, forcing a full table scan despite the range-looking predicate.",
+      "expect_match": [
+        "non-sargable predicate",
+        "function-wrapped indexed column",
+        "index not used",
+        "full table scan"
+      ]
+    },
+    {
+      "id": "query-performance-sql-decoy",
+      "juror": "query-performance-sql-juror",
+      "fixture": "examples/eval/adversarial/query-performance-sql/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It uses the same AT TIME ZONE construct and a >= / < range filter on created_at, so it superficially looks like the timezone conversion is wrapping the indexed column, but the conversion is applied to the literal bounds in the CTE while the column stays bare, keeping the predicate sargable and the index usable."
+    },
+    {
+      "id": "distributed-compute-spark-adv-recall",
+      "juror": "distributed-compute-spark-juror",
+      "fixture": "examples/eval/adversarial/distributed-compute-spark/recall",
+      "kind": "adv-recall",
+      "planted_defect": "attach_settlement_attributes broadcasts the partner registry, a table the loader docstring documents as continuously growing (one row per active partner-region pair, accumulating each quarter), so the broadcast side is unbounded and will eventually blow the driver/executor memory and serialize the cluster.",
+      "expect_match": [
+        "broadcast join",
+        "unbounded growing table",
+        "driver memory oom",
+        "broadcast threshold"
+      ]
+    },
+    {
+      "id": "distributed-compute-spark-decoy",
+      "juror": "distributed-compute-spark-juror",
+      "fixture": "examples/eval/adversarial/distributed-compute-spark/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It explicitly broadcasts a reference dimension twice in a join chain against a large settlements fact, which pattern-matches the broadcast-a-growing-dimension anti-pattern, but the dimension is ISO 3166-1 country codes hard-bounded at 249 rows by the standard, so the broadcast side can never grow and the pattern is correct."
+    },
+    {
+      "id": "algorithmic-complexity-adv-recall",
+      "juror": "algorithmic-complexity-juror",
+      "fixture": "examples/eval/adversarial/algorithmic-complexity/recall",
+      "kind": "adv-recall",
+      "planted_defect": "build_snapshots checks `if t.symbol not in universe` for every tick, where `universe` (from _resolve_universe) is a list, so each tick triggers a linear scan -> O(ticks * universe_size) instead of O(ticks).",
+      "expect_match": [
+        "list membership in loop",
+        "should be a set",
+        "quadratic",
+        "linear scan per element"
+      ]
+    },
+    {
+      "id": "algorithmic-complexity-decoy",
+      "juror": "algorithmic-complexity-juror",
+      "fixture": "examples/eval/adversarial/algorithmic-complexity/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "It appends DataFrames inside a chunk loop and filters with `if r.account not in allowed`, mimicking concat-in-loop and list-membership anti-patterns, but it concatenates once after the loop and `allowed` is a frozenset, so both operations are actually linear."
+    },
+    {
+      "id": "data-structure-selection-adv-recall",
+      "juror": "data-structure-selection-juror",
+      "fixture": "examples/eval/adversarial/data-structure-selection/recall",
+      "kind": "adv-recall",
+      "planted_defect": "A Bloom filter (CompactKeyIndex, probabilistic with false positives) is used as the sole authority for dedupe in JournalIntake.ingest: a positive membership hit marks the entry as a duplicate and silently drops it without confirming against the actual ledger, so false positives discard genuinely-new journal entries.",
+      "expect_match": [
+        "bloom filter false positive",
+        "silent data loss / dropped records",
+        "no exact confirmation of membership",
+        "probabilistic structure used for correctness-critical dedupe"
+      ]
+    },
+    {
+      "id": "data-structure-selection-decoy",
+      "juror": "data-structure-selection-juror",
+      "fixture": "examples/eval/adversarial/data-structure-selection/decoy",
+      "kind": "decoy",
+      "why_looks_guilty": "Uses the identical Bloom-filter CompactKeyIndex to dedupe an event stream, so at a glance it looks like the same probabilistic-dedupe anti-pattern, but a positive hit only short-circuits a skip after _confirm_committed verifies the key against an exact authoritative store, so false positives never drop a new event."
+    }
+  ]
+}

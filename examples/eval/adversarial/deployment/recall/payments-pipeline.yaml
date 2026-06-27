@@ -1,0 +1,202 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ProjectConfig
+metadata:
+  name: payments
+  namespace: payments
+spec:
+  promotionPolicies:
+  - stageSelector:
+      name: test
+    autoPromotionEnabled: true
+  - stageSelector:
+      name: staging
+    autoPromotionEnabled: true
+  - stageSelector:
+      name: prod
+    autoPromotionEnabled: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: payments-images
+  namespace: payments
+spec:
+  subscriptions:
+  - image:
+      repoURL: ghcr.io/acme/payments
+      discoveryLimit: 10
+      imageSelectionStrategy: SemVer
+      semverConstraint: ^2.0.0
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: test
+  namespace: payments
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: payments-images
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/payments-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/test
+          images:
+          - image: ghcr.io/acme/payments
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote test"
+      - uses: git-push
+        config:
+          path: ./src
+      - uses: argocd-update
+        config:
+          apps:
+          - name: payments-test
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: staging
+  namespace: payments
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: payments-images
+    sources:
+      stages:
+      - test
+  verification:
+    analysisTemplates:
+    - name: payments-canary-analysis
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/payments-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/staging
+          images:
+          - image: ghcr.io/acme/payments
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote staging"
+      - uses: git-push
+        config:
+          path: ./src
+      - uses: argocd-update
+        config:
+          apps:
+          - name: payments-staging
+      - uses: argocd-wait
+        config:
+          apps:
+          - name: payments-staging
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: payments
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: payments-images
+    sources:
+      stages:
+      - staging
+      requiredSoakTime: 1h
+      availabilityStrategy: All
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/payments-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/prod
+          images:
+          - image: ghcr.io/acme/payments
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote prod"
+      - uses: git-open-pr
+        config:
+          repoURL: https://github.com/acme/payments-manifests.git
+          createTargetBranch: false
+          sourceBranch: ${{ outputs.commit.branch }}
+          targetBranch: main
+      - uses: git-wait-for-pr
+        config:
+          repoURL: https://github.com/acme/payments-manifests.git
+          prNumber: ${{ outputs['open-pr'].prNumber }}
+      - uses: argocd-update
+        config:
+          apps:
+          - name: payments-prod
+            sources:
+            - repoURL: https://github.com/acme/payments-manifests.git
+              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
+      - uses: argocd-wait
+        config:
+          apps:
+          - name: payments-prod
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: payments-canary-analysis
+  namespace: payments
+spec:
+  args:
+  - name: app
+    value: payments
+  metrics:
+  - name: success-rate
+    interval: 1m
+    count: 5
+    successCondition: result[0] >= 0.995
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc:9090
+        query: |
+          sum(rate(http_requests_total{app="{{args.app}}",code=~"2.."}[5m]))
+          /
+          sum(rate(http_requests_total{app="{{args.app}}"}[5m]))
+  - name: latency-p99
+    interval: 1m
+    count: 5
+    successCondition: result[0] <= 0.4
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc:9090
+        query: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket{app="{{args.app}}"}[5m])) by (le))

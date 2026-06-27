@@ -1,0 +1,60 @@
+semantic_models:
+  - name: orders
+    description: >
+      Order grain fact, exactly one row per order, with rolled-up line
+      economics and order header attributes for channel and cohort reporting.
+    model: ref('fct_orders')
+    defaults:
+      agg_time_dimension: ordered_at
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+    dimensions:
+      - name: ordered_at
+        type: time
+        type_params:
+          time_granularity: day
+      - name: sales_channel
+        type: categorical
+      - name: fulfillment_status
+        type: categorical
+      - name: is_first_order
+        type: categorical
+        expr: case when customer_order_seq = 1 then true else false end
+    measures:
+      - name: order_net_revenue
+        description: Net merchandise revenue rolled up to the order.
+        agg: sum
+        expr: net_order_amount
+      - name: order_freight_charged
+        description: Freight charged to the customer for the order.
+        agg: sum
+        expr: order_freight_amount
+      - name: orders_placed
+        description: Order count.
+        agg: count
+        expr: order_id
+
+metrics:
+  - name: net_merchandise_revenue
+    description: Net merchandise revenue across all orders.
+    type: simple
+    type_params:
+      measure: order_net_revenue
+
+  - name: freight_revenue
+    description: Total freight revenue collected from customers.
+    type: simple
+    type_params:
+      measure: order_freight_charged
+
+  - name: avg_freight_per_order
+    description: Average freight charged per order.
+    type: ratio
+    type_params:
+      numerator: order_freight_charged
+      denominator: orders_placed
