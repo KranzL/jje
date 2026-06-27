@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: One row per customer.
+    columns:
+      - name: customer_id
+        description: Primary key, one row per customer.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_name
+        data_tests:
+          - not_null

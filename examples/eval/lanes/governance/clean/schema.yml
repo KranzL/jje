@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: Governed customer dimension serving downstream marts.
+    meta:
+      owner: data-platform@acme.com
+      tier: governed
+      catalog: registered
+    columns:
+      - name: customer_id
+        description: Surrogate key for the customer.
+      - name: email
+        description: Customer contact email.
+        meta:
+          pii: true
+          classification: pii_email
+          masking_policy: mask_email
+        tags:
+          - pii
+      - name: signup_date
+        description: Date the customer account was created.
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country code.

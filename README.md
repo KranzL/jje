@@ -197,6 +197,12 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
 - `escalation_policy` — `stop` (default: hand the candidate + open findings to
   you and halt) or `ship-with-caveats`.
 - `oscillation.repeat_threshold` (default `2`) and `oscillation.detect_contradictions`.
+- `interactivity.level` — `minimal | normal | high | max` (default `high`). How
+  much the loop pulls you in: the Planner/Executor/Judge are subagents that can't
+  prompt you, so they return their open questions and the **orchestrator** asks
+  you via `AskUserQuestion`, then feeds the answers back. `high` asks at every
+  plan, every revise, and any non-trivial decision; `minimal` runs autonomously
+  (for unattended/CI). `max_questions_per_turn` caps each prompt batch.
 - `models` — per-role model overrides.
 - `jurors` + `presets` — the roster registry and the named panels.
 

@@ -1,0 +1,6 @@
+name: analytics
+version: "1.0.0"
+profile: analytics
+models:
+  analytics:
+    +materialized: table

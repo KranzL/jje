@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: analytics
+    tables:
+      - name: events
+        description: >
+          Raw clickstream events. Date-partitioned on event_date.
+          ~4 TB total, ~3 years of history, ~6 GB per daily partition.
+        columns:
+          - name: user_id
+          - name: event_date
+          - name: event_type

@@ -1,0 +1,54 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: checkout
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: checkout-images
+    sources:
+      stages:
+      - staging
+      requiredSoakTime: 30m
+      availabilityStrategy: All
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: https://github.com/acme/checkout-manifests.git
+          checkout:
+          - branch: main
+            path: ./src
+      - uses: kustomize-set-image
+        config:
+          path: ./src/env/prod
+          images:
+          - image: ghcr.io/acme/checkout
+      - uses: git-commit
+        config:
+          path: ./src
+          message: "promote prod"
+      - uses: git-open-pr
+        config:
+          repoURL: https://github.com/acme/checkout-manifests.git
+          createTargetBranch: false
+          sourceBranch: ${{ outputs.commit.branch }}
+          targetBranch: main
+      - uses: git-wait-for-pr
+        config:
+          repoURL: https://github.com/acme/checkout-manifests.git
+          prNumber: ${{ outputs['open-pr'].prNumber }}
+      - uses: argocd-update
+        config:
+          apps:
+          - name: checkout-prod
+            sources:
+            - repoURL: https://github.com/acme/checkout-manifests.git
+              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
+      - uses: argocd-wait
+        config:
+          apps:
+          - name: checkout-prod

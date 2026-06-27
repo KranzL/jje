@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_order_lines
+    description: >
+      Sales transaction fact. Grain: one row per order line
+      (order_id + line_number).
+    columns:
+      - name: order_line_sk
+        description: Surrogate key, one row per order line.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_date_key
+        data_tests:
+          - not_null
+      - name: customer_sk
+        data_tests:
+          - not_null
+      - name: product_sk
+        data_tests:
+          - not_null
+      - name: line_extended_amount
+        description: quantity * unit_price for this line.
+        data_tests:
+          - not_null
+      - name: order_total
+        description: Total amount of the parent order.

@@ -1,0 +1,14 @@
+{
+  "name": "@acme/auth-tokens",
+  "version": "2.0.0",
+  "description": "Token parsing helpers for Acme services.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "api": "api-extractor run --local"
+  }
+}

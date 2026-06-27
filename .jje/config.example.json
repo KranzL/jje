@@ -6,6 +6,10 @@
   ],
   "ci_command": "make ci",
   "escalation_policy": "stop",
+  "interactivity": {
+    "level": "high",
+    "max_questions_per_turn": 4
+  },
   "oscillation": {
     "repeat_threshold": 2,
     "detect_contradictions": true

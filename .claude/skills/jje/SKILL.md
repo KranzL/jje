@@ -26,6 +26,24 @@ branch until the Judge returns ACCEPT and CI is green. While a run is active the
 `jje-ci-gate` hook blocks every commit/merge/push without the approval marker;
 do not try to work around it.
 
+## Interactivity (you broker every question to the user)
+The Planner, Executor, and Judge are subagents — they CANNOT prompt the user.
+You can. They return their open questions; **you ask the user with
+AskUserQuestion and feed the answers back.** Read `interactivity.level` from
+config (default `high`):
+- `minimal` — never ask; run autonomously (CI/unattended). Skip all brokering.
+- `normal` — ask only at genuine forks (a real ambiguity or an irreversible call).
+- `high` (default) — ask at the start of every Plan, on every REVISE, and for any
+  non-trivial Executor/Judge decision. Lean toward asking.
+- `max` — ask aggressively, confirming even small calls; surface every returned
+  question.
+
+Brokering rule: whenever a role returns a `questions_for_user` /
+`decisions_needed` / `clarifications` array, batch them (≤
+`max_questions_per_turn`, default 4) into AskUserQuestion calls, then pass the
+answers into the next spawn of that role. Make options concrete; put your
+recommended option first. At `minimal`, pick sensible defaults and proceed.
+
 ## 0. Seed the run
 1. `$S init --request "$ARGUMENTS"` — capture `run_dir`, `scratch_branch`,
    `worktree`, `base_ref`, `budget`, `ci_command` from the JSON it prints. Use
@@ -38,9 +56,14 @@ do not try to work around it.
 ## 1. Planner (callable; REPLAN returns here)
 Spawn the `planner` subagent with the request and repo context. Instruct it to
 write the plan to `$RUN/plan.json` (ordered steps, files in scope, risks,
-explicit success criteria — these are what the jury checks against). It edits
-nothing. On REPLAN, first `mv $RUN/plan.json $RUN/plan-v<n>.json`, then re-spawn
-the Planner with the Judge's feedback.
+explicit success criteria — these are what the jury checks against) and to return
+a `questions_for_user` array (scope boundaries, approach choices, ambiguous
+requirements, success criteria to confirm). It edits nothing.
+**Broker `questions_for_user` per §Interactivity BEFORE you seat the jury** —
+ask the user, then (if the answers change the plan) re-spawn the Planner with the
+answers so the plan reflects them. On REPLAN, first `mv $RUN/plan.json
+$RUN/plan-v<n>.json`, then re-spawn the Planner with the Judge's feedback (and
+re-broker its new questions).
 
 ## 2. Seat the jury (user entry point; per cycle)
 Read `presets` from `$CLAUDE_PROJECT_DIR/.jje/config.json` (fall back to
@@ -60,10 +83,15 @@ Spawn the `executor` subagent, working dir = `<worktree>`. Pass `$RUN/plan.json`
 - First pass: build the candidate against the plan.
 - On REVISE: pass the Judge's `feedback` (the specific blocking findings) and
   instruct it to fix ONLY those — no re-architecting.
-Instruct it to commit on the scratch branch inside the worktree, write
-`$RUN/iterations/iter-<n>/self-report.json` (changed files, plan steps covered,
-anything blocked), and snapshot the diff to
-`$RUN/iterations/iter-<n>/candidate.diff` (`git -C <worktree> diff <base_ref>`).
+Instruct it: when it hits a real fork (library/approach choice, an ambiguous
+spec, an edge-case policy, a destructive or irreversible step), it must STOP and
+return that fork in a `decisions_needed` array rather than guessing. **Broker
+`decisions_needed` per §Interactivity, then re-spawn the Executor with the
+answers** so it implements your choice. It commits on the scratch branch inside
+the worktree, writes `$RUN/iterations/iter-<n>/self-report.json` (changed files,
+plan steps covered, anything blocked, plus any `decisions_needed`), and snapshots
+the diff to `$RUN/iterations/iter-<n>/candidate.diff`
+(`git -C <worktree> diff <base_ref>`).
 
 ## 5. Jury (parallel, independent, scoped)
 First, load any project conventions: if `$CLAUDE_PROJECT_DIR/.jje/conventions/`
@@ -92,13 +120,19 @@ Each juror writes exactly one verdict to
 2. Spawn the `judge` subagent (Read-only). Give it the verdict dir, the plan, the
    prior iterations' decisions, and the guard output. It reasons over verdicts
    (never re-reviews the candidate) and returns
-   `{decision, rationale, feedback, unresolved, contradictions}` per
-   `skills/jje/routing.md`. If the Judge names a contradictory pair, run
-   `$S record-contradiction --run $RUN --a <fpA> --b <fpB> --note "..."`.
+   `{decision, rationale, feedback, unresolved, contradictions, clarifications}`
+   per `skills/jje/routing.md`. The `clarifications` array holds genuinely
+   judgment-dependent calls — a REVISE-vs-REPLAN boundary, whether a debatable
+   advisory should gate, an ACCEPT with non-blocking caveats. **Broker
+   `clarifications` per §Interactivity and let the user settle the call BEFORE you
+   record the decision** (the user's answer can override the Judge's lean for
+   anything except the hard `recommend_escalate` backstop). If the Judge names a
+   contradictory pair, run `$S record-contradiction --run $RUN --a <fpA> --b <fpB>
+   --note "..."`.
 3. Record it: `$S record-decision --run $RUN --decision <D> --feedback "<...>"`.
 
 If `recommend_escalate` is true, the decision MUST be ESCALATE regardless of the
-Judge's lean (the guards are the hard backstop).
+Judge's lean or the user's answer (the guards are the hard backstop).
 
 ## 7. Route on the decision
 - **ACCEPT** → §9 (CI gate).

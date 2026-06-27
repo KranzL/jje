@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: One row per customer with lifetime value.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: customer_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+          - type: primary_key
+      - name: full_name
+        data_type: varchar
+      - name: email_address
+        data_type: varchar
+      - name: lifetime_value
+        data_type: numeric

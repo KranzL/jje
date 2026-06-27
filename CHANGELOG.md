@@ -23,6 +23,15 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
   review skill is an enforceable checklist with a principal-level blocking bar.
   Opt-in via the new presets; `quick`/`code-full` are unchanged.
 
+### Added (human-in-the-loop interactivity)
+- The loop now pulls the user in at the plan/execute/judge stages via
+  `AskUserQuestion`, brokered by the orchestrator (the Planner/Executor/Judge are
+  subagents and can't prompt; they return `questions_for_user` /
+  `decisions_needed` / `clarifications` and the orchestrator asks the user, then
+  feeds answers back). New `interactivity.level` config (`minimal`/`normal`/
+  `high`/`max`, default `high`) with `max_questions_per_turn`. `minimal` keeps
+  unattended/CI runs autonomous.
+
 ### Added (project conventions overlay)
 - Jurors can now review against **project-specific conventions**: drop
   `### <lane>`-organized rules in `.jje/conventions/*.md` (gitignored, local) and

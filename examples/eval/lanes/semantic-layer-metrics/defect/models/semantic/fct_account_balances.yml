@@ -1,0 +1,29 @@
+semantic_models:
+  - name: account_balances
+    description: Daily end-of-day account balance snapshot, one row per account per day.
+    model: ref('fct_account_balances')
+    defaults:
+      agg_time_dimension: balance_date
+    entities:
+      - name: account
+        type: primary
+        expr: account_id
+    dimensions:
+      - name: balance_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: region
+        type: categorical
+    measures:
+      - name: account_balance
+        description: End-of-day account balance.
+        agg: sum
+        expr: balance_amount
+
+metrics:
+  - name: total_account_balance
+    description: Total account balance.
+    type: simple
+    type_params:
+      measure: account_balance

@@ -1,0 +1,5 @@
+name: sales_marts
+version: '1.0.0'
+config-version: 2
+profile: sales_marts
+model-paths: ["models"]
