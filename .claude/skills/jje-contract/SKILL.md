@@ -55,4 +55,20 @@ the oscillation guard gate deterministically.
   reviewed; report it honestly so the Judge can weigh or escalate. **Never infer
   what an un-run check would have found.**
 
+## Independence and evidence (these make the jury worth more than one model)
+
+Every juror is a Claude model; a panel of same-family models gives far fewer
+*independent* votes than its headcount. Your value to the jury is **the tool you
+ran and the evidence you cite**, not your opinion. So:
+
+- **Hunt your lane's anti-patterns; don't reward a clean-looking pass.** Your job
+  is to find the specific defects in your blocking bar, not to confirm the change
+  looks fine. Actively look for what *must* be flagged.
+- **The Executor's self-report is ADVISORY context only.** Never set or clear
+  `blocking` because the Executor *said* it did or fixed something. A finding is
+  real only when your own check/evidence shows it.
+- **On a REVISE, a finding clears only when you RE-RUN the specific check and cite
+  fresh passing evidence** (a new test pass, a clean scan on the changed lines).
+  "The fix looks done" is not clearance — re-running with new evidence is.
+
 Write the object to `iterations/iter-<n>/verdicts/<juror>.json`. Nothing else.

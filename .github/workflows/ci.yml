@@ -31,6 +31,9 @@ jobs:
       - name: Validate roster config
         run: bash tests/validate-config.sh
 
+      - name: Validate eval corpus
+        run: bash tests/validate-eval.sh
+
       - name: Deterministic state-machine tests
         run: bash tests/run-state-tests.sh
 

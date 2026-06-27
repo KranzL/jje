@@ -108,6 +108,18 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `partitioning-layout-juror` | Sonnet | Partition design, small files, compaction | High-cardinality partitioning, missing compaction on an append table, no-pruning layout |
 | `storage-format-juror` | Haiku | Parquet/ORC/Avro, compression, pushdown | A large table uncompressed / row-oriented, a type choice that defeats pushdown |
 
+### IaC lane
+
+| Juror | Model | Reviews | Blocks on |
+|---|---|---|---|
+| `terraform-juror` | Sonnet | AWS Terraform: security, IAM, encryption, state, cost | Public S3, open `0.0.0.0/0` SG, unencrypted at rest, IAM `*:*`, public RDS, plaintext secrets, committed tfstate, unpinned providers (runs Checkov/Trivy/tflint/Infracost) |
+
+### Deploy lane
+
+| Juror | Model | Reviews | Blocks on |
+|---|---|---|---|
+| `deployment-juror` | Sonnet | Kargo + Argo CD/Rollouts GitOps promotion | Prod Stage with no verification gate, ungated promotion, stage-skipping, unpinned Freight, no human gate to prod, canary with no rollback, plaintext secrets |
+
 ### Presets
 
 | Preset | Jurors |
@@ -118,7 +130,9 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `security-sweep` | security + governance + data-contract |
 | `go` | correctness + security + the 3 Go jurors |
 | `datalake` | data-contract + idempotency + data-quality + the 3 datalake jurors |
-| `full` | all 16 |
+| `iac` | terraform + security |
+| `deploy` | deployment + security |
+| `full` | all 18 |
 | `custom` | choose individually |
 
 ## Configuration

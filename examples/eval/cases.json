@@ -1,0 +1,45 @@
+{
+  "description": "Seeded-defect eval corpus. Each case is a fixture with a KNOWN planted defect that a specific juror must flag as blocking. The recall harness (tests/run-eval.sh, opt-in, needs live jurors) runs the juror against the fixture and checks it produced a blocking finding whose check/issue matches. This is the instrument for measuring per-lane false-negative rate and tuning blocking bars.",
+  "cases": [
+    {
+      "id": "py-sqli",
+      "lane": "code",
+      "juror": "security-juror",
+      "fixture": "examples/sample-target",
+      "base": "main",
+      "planted_defect": "SQL injection via string concatenation in app/handler.py",
+      "expect_blocking": true,
+      "expect_match": ["sql", "inject", "handler.py"]
+    },
+    {
+      "id": "py-failing-test",
+      "lane": "code",
+      "juror": "correctness-juror",
+      "fixture": "examples/sample-target",
+      "base": "main",
+      "planted_defect": "normalize_email drops .strip(); unit test fails",
+      "expect_blocking": true,
+      "expect_match": ["test", "normalize_email"]
+    },
+    {
+      "id": "tf-public-s3",
+      "lane": "iac",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/terraform/public-s3",
+      "base": "main",
+      "planted_defect": "public S3 bucket (public-read ACL, no public_access_block), unencrypted, SG ingress 0.0.0.0/0 on port 22",
+      "expect_blocking": true,
+      "expect_match": ["s3", "public", "0.0.0.0/0", "encrypt"]
+    },
+    {
+      "id": "go-data-race",
+      "lane": "go",
+      "juror": "go-concurrency-juror",
+      "fixture": "examples/eval/go-race",
+      "base": "main",
+      "planted_defect": "concurrent writes to a shared map without a lock (go test -race fails)",
+      "expect_blocking": true,
+      "expect_match": ["race"]
+    }
+  ]
+}

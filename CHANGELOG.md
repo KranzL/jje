@@ -6,6 +6,26 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (research-driven: stronger agents, IaC, deployment)
+- **IaC lane**: `terraform-juror` (AWS Terraform — Checkov/Trivy/tflint/Infracost,
+  security + IAM + encryption + state hygiene + cost), plus an `iac` preset.
+  Note: uses Trivy (`tfsec` is deprecated) and Checkov (Terrascan is archived).
+- **Deploy lane**: `deployment-juror` (Kargo + Argo CD/Rollouts GitOps promotion
+  safety — verification gates, stage-skip, unpinned Freight, human gates,
+  rollback), plus a `deploy` preset. Built from research verified against the
+  official Kargo docs.
+- **Eval corpus** (`examples/eval/`): seeded-defect fixtures + a case manifest +
+  a CI-able structural validator (`tests/validate-eval.sh`) and an opt-in recall
+  grader (`tests/run-eval.sh`) to measure per-lane juror false-negative rate.
+
+### Changed (agent-strengthening, from the 2026 multi-agent-judge research)
+- Jurors now treat the Executor's self-report as **advisory only** and may not set
+  or clear `blocking` from it; a finding clears only on a re-run with fresh
+  evidence (counters anchoring/sycophancy + the self-correction illusion). Added
+  anti-pattern-hunting guidance to the verdict contract.
+- **`security-juror` moved to Sonnet** (from Haiku) — small models miss
+  injection/authz/secret blockers, the most expensive juror error.
+
 ### Changed
 - Reframed as a **harness** (not a single skill) across the README, plugin
   manifest, and docs, with an explicit two-tier safety model.
