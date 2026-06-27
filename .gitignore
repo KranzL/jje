@@ -1,9 +1,10 @@
-# JJE runtime state (per-repo, never committed)
+# JJE runtime state + local project config (per-repo, never committed)
 .jje/runs/
 .jje/worktrees/
 .jje/COMMIT_APPROVED
 .jje/ACTIVE
 .jje/config.json
+.jje/conventions/
 
 # Python
 __pycache__/
@@ -15,3 +16,11 @@ __pycache__/
 
 # Plugin build artifact
 dist/
+
+# Terraform working artifacts (from juror/eval runs)
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+tfplan.binary
+tfplan.json

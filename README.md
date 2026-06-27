@@ -148,6 +148,16 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
 - `models` — per-role model overrides.
 - `jurors` + `presets` — the roster registry and the named panels.
 
+### Project conventions (review against *your* standards)
+
+Jurors review against generic best practice by default. To make them enforce
+*your* project's specific decisions, drop markdown files in `.jje/conventions/`
+(gitignored — local, never published). Organize rules under `### <lane>` headers;
+the orchestrator passes each juror the section matching its domain, and `(blocking)`
+rules there become additional blocking bars. See `.jje/conventions.example.md`
+for the format. This is how a datalake juror learns, say, "the current table must
+keep its CDC exactly-once semantics" instead of only generic Iceberg advice.
+
 ## Safety model (tested, with honest limits)
 
 JJE has **two tiers** of enforcement. We tested both — see

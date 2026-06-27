@@ -66,10 +66,21 @@ anything blocked), and snapshot the diff to
 `$RUN/iterations/iter-<n>/candidate.diff` (`git -C <worktree> diff <base_ref>`).
 
 ## 5. Jury (parallel, independent, scoped)
+First, load any project conventions: if `$CLAUDE_PROJECT_DIR/.jje/conventions/`
+holds `*.md` files, they carry project-specific review criteria under
+`### <lane>` headers (see `.jje/conventions.example.md`). For each seated juror,
+extract the section(s) whose lane matches the juror's domain (e.g.
+`table-format-juror` → `### table-format`) and pass that text to the juror as
+**PROJECT CONVENTIONS** — its `(blocking)` rules are additional blocking bars for
+that lane. Pass only the matching section(s) to keep each juror's context lean.
+
 Spawn ALL seated jurors in a SINGLE message as parallel spawns so they run
 concurrently and never see each other's output. Give each: the worktree path,
 the base ref (export `JJE_BASE=<base_ref>` so every juror diffs the same
-baseline), `$RUN/plan.json`, the self-report, and the iteration verdict dir.
+baseline), `$RUN/plan.json`, its matching project conventions (if any), and the
+iteration verdict dir. The Executor's self-report is **advisory context only** —
+a juror must never set or clear `blocking` from what the Executor *claims*; only
+its own checks and evidence decide.
 Each juror writes exactly one verdict to
 `$RUN/iterations/iter-<n>/verdicts/<juror>.json` matching
 `skills/jje-contract/SKILL.md`. Do not let a juror comment outside its lane.

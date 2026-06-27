@@ -6,6 +6,13 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (project conventions overlay)
+- Jurors can now review against **project-specific conventions**: drop
+  `### <lane>`-organized rules in `.jje/conventions/*.md` (gitignored, local) and
+  the orchestrator passes each juror the section matching its domain, with
+  `(blocking)` rules becoming additional blocking bars. The mechanism is generic
+  and public; the conventions content stays local. See `.jje/conventions.example.md`.
+
 ### Added (research-driven: stronger agents, IaC, deployment)
 - **IaC lane**: `terraform-juror` (AWS Terraform — Checkov/Trivy/tflint/Infracost,
   security + IAM + encryption + state hygiene + cost), plus an `iac` preset.

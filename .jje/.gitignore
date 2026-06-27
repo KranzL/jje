@@ -1,4 +1,6 @@
 runs/
 worktrees/
 COMMIT_APPROVED
+ACTIVE
 config.json
+conventions/
