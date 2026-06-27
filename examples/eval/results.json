@@ -1,0 +1,610 @@
+[
+  {
+    "id": "correctness-recall",
+    "juror": "correctness-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "chunk.py:5 loop bound range(0, len(items) - size, size) drops the final chunk, so chunk([1"
+  },
+  {
+    "id": "correctness-clean",
+    "juror": "correctness-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "security-recall",
+    "juror": "security-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Untrusted HTTP query param 'id' is concatenated into a raw SQL string and executed in hand"
+  },
+  {
+    "id": "security-clean",
+    "juror": "security-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "structure-recall",
+    "juror": "structure-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Forbidden placeholder identifier `helper2` defined and used in invoicing.py:4 (also called"
+  },
+  {
+    "id": "structure-clean",
+    "juror": "structure-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "observability-recall",
+    "juror": "observability-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "fetch_invoices at sync_job.py:9-14 makes an outbound HTTP call (urllib.request.urlopen, li"
+  },
+  {
+    "id": "observability-clean",
+    "juror": "observability-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "interface-compat-recall",
+    "juror": "interface-compat-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "parseToken retyped from TokenClaims to Promise<TokenClaims> in src/index.ts:7, breaking th"
+  },
+  {
+    "id": "interface-compat-clean",
+    "juror": "interface-compat-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "data-contract-recall",
+    "juror": "data-contract-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "dim_customers renamed/exposes column as 'email_address' (schema.yml:17, dim_customers.sql:"
+  },
+  {
+    "id": "data-contract-clean",
+    "juror": "data-contract-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "idempotency-recall",
+    "juror": "idempotency-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Non-idempotent append: bare INSERT INTO warehouse.fact_orders ... SELECT in load_daily_ord"
+  },
+  {
+    "id": "idempotency-clean",
+    "juror": "idempotency-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "cost-recall",
+    "juror": "cost-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "daily_active_users.sql:12 scans the full ~4 TB source('analytics','events') with no event_"
+  },
+  {
+    "id": "cost-clean",
+    "juror": "cost-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "data-quality-recall",
+    "juror": "data-quality-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "dim_customer.sql:7 left-joins stg_orders, fanning the model out to one row per customer-or"
+  },
+  {
+    "id": "data-quality-clean",
+    "juror": "data-quality-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "governance-recall",
+    "juror": "governance-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Governed model dim_customers exposes PII column 'email' with no tag/mask/classification in"
+  },
+  {
+    "id": "governance-clean",
+    "juror": "governance-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "go-concurrency-recall",
+    "juror": "go-concurrency-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Data race on Counter.value at counter.go:10 \u2014 concurrent unsynchronized read/write from go"
+  },
+  {
+    "id": "go-concurrency-clean",
+    "juror": "go-concurrency-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "go-error-handling-recall",
+    "juror": "go-error-handling-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "store.go:18 discards the error returned by w.Write via `_, _ = w.Write(data)`, so a failed"
+  },
+  {
+    "id": "go-error-handling-clean",
+    "juror": "go-error-handling-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "go-performance-recall",
+    "juror": "go-performance-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "JoinRows in joiner.go:3-16 builds output via string + concatenation in nested loops, produ"
+  },
+  {
+    "id": "go-performance-clean",
+    "juror": "go-performance-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "table-format-recall",
+    "juror": "table-format-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "ALTER COLUMN amount TYPE int narrows bigint->int on Iceberg table lakehouse.finance.paymen"
+  },
+  {
+    "id": "table-format-clean",
+    "juror": "table-format-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "partitioning-layout-recall",
+    "juror": "partitioning-layout-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "write_events.py:12 partitions the curated events table by user_id, a high-cardinality colu"
+  },
+  {
+    "id": "partitioning-layout-clean",
+    "juror": "partitioning-layout-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "storage-format-recall",
+    "juror": "storage-format-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Analytical fact table fact_events written in row-oriented CSV format where columnar (Parqu"
+  },
+  {
+    "id": "storage-format-clean",
+    "juror": "storage-format-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "terraform-recall",
+    "juror": "terraform-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "aws_security_group.bastion allows unrestricted SSH ingress from 0.0.0.0/0 on port 22 in se"
+  },
+  {
+    "id": "terraform-clean",
+    "juror": "terraform-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "deployment-recall",
+    "juror": "deployment-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Prod Stage 'prod' has no verification AnalysisTemplate; Freight reaches prod ungated (stag"
+  },
+  {
+    "id": "deployment-clean",
+    "juror": "deployment-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "dimensional-modeling-recall",
+    "juror": "dimensional-modeling-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Header-level measure order_total on the line-item-grain fct_order_lines (fct_order_lines.s"
+  },
+  {
+    "id": "dimensional-modeling-clean",
+    "juror": "dimensional-modeling-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "slowly-changing-dimensions-recall",
+    "juror": "slowly-changing-dimensions-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Type-2 dim_customer MERGE updates attribute columns in place instead of close-and-insert, "
+  },
+  {
+    "id": "slowly-changing-dimensions-clean",
+    "juror": "slowly-changing-dimensions-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "normalization-relational-recall",
+    "juror": "normalization-relational-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "3NF/BCNF violation in employees (V1__create_employees.sql:6-8): non-key dept_id functional"
+  },
+  {
+    "id": "normalization-relational-clean",
+    "juror": "normalization-relational-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "semantic-layer-metrics-recall",
+    "juror": "semantic-layer-metrics-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Semi-additive end-of-day balance measure 'account_balance' summed with plain agg: sum and "
+  },
+  {
+    "id": "semantic-layer-metrics-clean",
+    "juror": "semantic-layer-metrics-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "data-leakage-recall",
+    "juror": "data-leakage-juror",
+    "kind": "recall",
+    "blocking": 3,
+    "pass": true,
+    "top": "StandardScaler.fit_transform is called on the full feature matrix X at train_churn.py:19 b"
+  },
+  {
+    "id": "data-leakage-clean",
+    "juror": "data-leakage-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "feature-engineering-recall",
+    "juror": "feature-engineering-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "build_training_set.py:17-22 joins account_features to the chargeback label spine on accoun"
+  },
+  {
+    "id": "feature-engineering-clean",
+    "juror": "feature-engineering-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "model-evaluation-recall",
+    "juror": "model-evaluation-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "StandardScaler is fit on the full dataset before the train/test split in evaluate_fraud_mo"
+  },
+  {
+    "id": "model-evaluation-clean",
+    "juror": "model-evaluation-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "ml-reproducibility-recall",
+    "juror": "ml-reproducibility-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "train_credit_model.py:16 trains and registers production model 'credit_default_rf' from mu"
+  },
+  {
+    "id": "ml-reproducibility-clean",
+    "juror": "ml-reproducibility-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "model-serving-mlops-recall",
+    "juror": "model-serving-mlops-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "Train/serve skew in serving_handler.py: model trains with missing=np.nan (line 16) over Na"
+  },
+  {
+    "id": "model-serving-mlops-clean",
+    "juror": "model-serving-mlops-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "model-monitoring-drift-recall",
+    "juror": "model-monitoring-drift-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Feature drift is gated on a bare KS p-value < 0.05 (drift_monitor.py:26, threshold drift_m"
+  },
+  {
+    "id": "model-monitoring-drift-clean",
+    "juror": "model-monitoring-drift-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "statistical-rigor-recall",
+    "juror": "statistical-rigor-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "ab_readout.py:31-44 runs k=10 simultaneous t-tests (one per metric) at ALPHA=0.05 with no "
+  },
+  {
+    "id": "statistical-rigor-clean",
+    "juror": "statistical-rigor-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "experimentation-abtest-recall",
+    "juror": "experimentation-abtest-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "analyze_checkout_experiment.py:49-52 runs the primary decision t-test on per-session array"
+  },
+  {
+    "id": "experimentation-abtest-clean",
+    "juror": "experimentation-abtest-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "causal-inference-recall",
+    "juror": "causal-inference-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "estimate_loyalty_effect.py:18 adjusts for purchases_after_enrollment, a post-treatment des"
+  },
+  {
+    "id": "causal-inference-clean",
+    "juror": "causal-inference-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "notebook-productionization-recall",
+    "juror": "notebook-productionization-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Silent dtype coercion in daily_revenue_pipeline.py:10 \u2014 pd.to_numeric(orders['amount'], er"
+  },
+  {
+    "id": "notebook-productionization-clean",
+    "juror": "notebook-productionization-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "streaming-eventtime-recall",
+    "juror": "streaming-eventtime-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "Windowed event-time aggregation in revenue_window.py:26-32 (groupBy merchant_id + window(e"
+  },
+  {
+    "id": "streaming-eventtime-clean",
+    "juror": "streaming-eventtime-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "orchestration-dag-recall",
+    "juror": "orchestration-dag-juror",
+    "kind": "recall",
+    "blocking": 2,
+    "pass": true,
+    "top": "daily_revenue_dag.py:23 derives the partition key from datetime.now() (run_date), which is"
+  },
+  {
+    "id": "orchestration-dag-clean",
+    "juror": "orchestration-dag-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "query-performance-sql-recall",
+    "juror": "query-performance-sql-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Non-sargable predicate date(o.event_ts) = '2026-06-25' wraps the timestamp/partition key o"
+  },
+  {
+    "id": "query-performance-sql-clean",
+    "juror": "query-performance-sql-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "distributed-compute-spark-recall",
+    "juror": "distributed-compute-spark-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "Unbounded driver collect: enriched.toPandas() at export_customer_orders.py:38 materializes"
+  },
+  {
+    "id": "distributed-compute-spark-clean",
+    "juror": "distributed-compute-spark-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "algorithmic-complexity-recall",
+    "juror": "algorithmic-complexity-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "filter_active_events in enrich.py:7 does a list membership test (event[\"user_id\"] in activ"
+  },
+  {
+    "id": "algorithmic-complexity-clean",
+    "juror": "algorithmic-complexity-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  },
+  {
+    "id": "data-structure-selection-recall",
+    "juror": "data-structure-selection-juror",
+    "kind": "recall",
+    "blocking": 1,
+    "pass": true,
+    "top": "monthly_billable_seats.sql:10 uses approx_count_distinct(s.user_id) for billable_seats, wh"
+  },
+  {
+    "id": "data-structure-selection-clean",
+    "juror": "data-structure-selection-juror",
+    "kind": "precision",
+    "blocking": 0,
+    "pass": true,
+    "top": ""
+  }
+]
