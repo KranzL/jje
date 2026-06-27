@@ -6,6 +6,23 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (20 principal-level data jurors — roster now 38)
+- **Data-modeling lane**: `dimensional-modeling`, `slowly-changing-dimensions`,
+  `normalization-relational`, `semantic-layer-metrics` (preset `data-modeling`).
+- **Machine-learning lane**: `data-leakage`, `feature-engineering`,
+  `model-evaluation`, `ml-reproducibility`, `model-serving-mlops`,
+  `model-monitoring-drift` (preset `ml`).
+- **Data-science lane**: `statistical-rigor`, `experimentation-abtest`,
+  `causal-inference`, `notebook-productionization` (preset `data-science`).
+- **Data-platforms lane**: `streaming-eventtime`, `orchestration-dag`,
+  `query-performance-sql`, `distributed-compute-spark` (preset `data-platforms`).
+- **DS&algorithms lane**: `algorithmic-complexity`, `data-structure-selection`
+  (preset `dsa`).
+- All 20 are Sonnet judgment lanes researched to principal depth (Kimball,
+  Kohavi/trustworthy-experiments, Akidau, the MLOps/stats/causal canon); each
+  review skill is an enforceable checklist with a principal-level blocking bar.
+  Opt-in via the new presets; `quick`/`code-full` are unchanged.
+
 ### Added (project conventions overlay)
 - Jurors can now review against **project-specific conventions**: drop
   `### <lane>`-organized rules in `.jje/conventions/*.md` (gitignored, local) and

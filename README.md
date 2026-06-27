@@ -120,6 +120,53 @@ blocking bar) and emits one verdict. Add your own with three files — see
 |---|---|---|---|
 | `deployment-juror` | Sonnet | Kargo + Argo CD/Rollouts GitOps promotion | Prod Stage with no verification gate, ungated promotion, stage-skipping, unpinned Freight, no human gate to prod, canary with no rollback, plaintext secrets |
 
+> The lanes below are **principal-level data review** — judgment lanes (all Sonnet), not lint. Each enforces what a principal engineer blocks on. They pair with [project conventions](#project-conventions-review-against-your-standards): drop a `### <lane>` section to teach a juror your team's standard.
+
+### Data-modeling lane
+
+| Juror | Reviews | Blocks on |
+|---|---|---|
+| `dimensional-modeling-juror` | Kimball grain/fact/dim/additivity | Mixed-grain fact, silent grain change, ratio stored pre-divided, semi-additive summed over time, point-in-time-wrong SCD2 key |
+| `slowly-changing-dimensions-juror` | SCD history + as-of correctness | In-place update of a Type-2, gaps/overlaps in validity intervals, `is_current` join attributing historical facts |
+| `normalization-relational-juror` | Schema design (forms, keys, RI) | No real PK, BCNF violation causing anomalies on a system-of-record, surrogate PK with no unique on the business key |
+| `semantic-layer-metrics-juror` | Metric math (MetricFlow/Cube/LookML) | Semi-additive `sum`, sum-of-ratios, fan-out inflation, chasm/fan traps, many-to-many without allocation |
+
+### Machine-learning lane
+
+| Juror | Reviews | Blocks on |
+|---|---|---|
+| `data-leakage-juror` | Train/eval leakage | Preprocessing fit before split, label-derived features, look-ahead/entity leakage, target-encoding without out-of-fold |
+| `feature-engineering-juror` | Point-in-time + train/serve skew | As-of join with no time predicate, global-stat fit, unbounded history aggregate, silent semantic change to a feature |
+| `model-evaluation-juror` | Trustworthy reported numbers | Leakage invalidating the metric, selection-as-generalization, wrong metric for imbalance, threshold tuned on test |
+| `ml-reproducibility-juror` | Re-runnable + lineage | Shipped model missing the reproducibility tuple, training on `latest`, incomplete seed chain, unpinned env |
+| `model-serving-mlops-juror` | Artifact → live service | Train/serve skew, `:latest` serving pointer, infra-only canary gate, non-atomic rollback of the deployable tuple |
+| `model-monitoring-drift-juror` | Deployed-model monitoring | No label-free degradation signal under label lag, accuracy on a biased labeled subset, bare-p-value drift, today-vs-yesterday baselines |
+
+### Data-science lane
+
+| Juror | Reviews | Blocks on |
+|---|---|---|
+| `statistical-rigor-juror` | Does the math support the claim | Uncorrected multiplicity, peeking on a fixed-horizon test, unaddressed SRM, analysis-unit ≠ randomization-unit |
+| `experimentation-abtest-juror` | Online experiment validity | Unit-of-analysis variance mismatch, missing/failing SRM, peeking without sequential correction, fabricated power |
+| `causal-inference-juror` | Causal claims | Causal claim from an adjusted observational coefficient, post-treatment/collider bias, conditioning on the outcome, missing confounder |
+| `notebook-productionization-juror` | EDA → production | Not reproducible from a cold kernel, committed creds/personal paths, no parameterization, zero tests *and* zero assertions |
+
+### Data-platforms lane
+
+| Juror | Reviews | Blocks on |
+|---|---|---|
+| `streaming-eventtime-juror` | Time/windowing/state | Stateful op with no watermark *and* no TTL, processing-time where event-time is meant, silent late-drop, watermark on wrong column |
+| `orchestration-dag-juror` | Orchestration control plane | Key path from `now()`, non-idempotent append under retry/backfill, `catchup=True` with old start_date + no cap |
+| `query-performance-sql-juror` | Execution plan | Nested-loop/cartesian over two large inputs, function/cast defeating pruning, broadcast/shuffle misjoin with skew |
+| `distributed-compute-spark-juror` | Spark runtime efficiency | Unbounded driver `collect()`, broadcasting a growing relation, untreated skew, `coalesce(1)` at scale |
+
+### Data structures & algorithms lane
+
+| Juror | Reviews | Blocks on |
+|---|---|---|
+| `algorithmic-complexity-juror` | Big-O on data-scaling paths | Super-linear hot path on unbounded N, N+1 per-row work, unbounded materialization to single-node memory, fan-out explosion |
+| `data-structure-selection-juror` | Structure/index/sketch fit | Approximate structure where exact is required, one-sided-error gating a decision unsafely, wrong asymptotic for the volume, sketch with no error budget |
+
 ### Presets
 
 | Preset | Jurors |
@@ -132,7 +179,12 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `datalake` | data-contract + idempotency + data-quality + the 3 datalake jurors |
 | `iac` | terraform + security |
 | `deploy` | deployment + security |
-| `full` | all 18 |
+| `data-modeling` | the 4 modeling jurors (grain, SCD, normalization, metrics) |
+| `ml` | the 6 ML jurors (leakage, features, eval, repro, serving, drift) |
+| `data-science` | stats-rigor + experimentation + causal + notebook-prod |
+| `data-platforms` | streaming + orchestration + query-perf + spark |
+| `dsa` | algorithmic-complexity + data-structure-selection |
+| `full` | all 38 |
 | `custom` | choose individually |
 
 ## Configuration

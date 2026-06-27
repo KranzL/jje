@@ -1,6 +1,9 @@
 {
   "default_budget": 6,
-  "protected_branches": ["main", "master"],
+  "protected_branches": [
+    "main",
+    "master"
+  ],
   "ci_command": "make ci",
   "escalation_policy": "stop",
   "oscillation": {
@@ -15,34 +18,350 @@
     "juror_high_judgment": "sonnet"
   },
   "jurors": {
-    "correctness-juror":      {"agent": "correctness-juror",      "skill": "correctness-review",   "lane": "code",     "model": "sonnet"},
-    "security-juror":         {"agent": "security-juror",         "skill": "security-review",      "lane": "code",     "model": "sonnet"},
-    "structure-juror":        {"agent": "structure-juror",        "skill": "structure-review",     "lane": "code",     "model": "haiku"},
-    "observability-juror":    {"agent": "observability-juror",    "skill": "observability-review", "lane": "code",     "model": "haiku"},
-    "interface-compat-juror": {"agent": "interface-compat-juror", "skill": "interface-review",     "lane": "code",     "model": "sonnet"},
-    "data-contract-juror":    {"agent": "data-contract-juror",    "skill": "data-contract-review", "lane": "pipeline", "model": "sonnet"},
-    "idempotency-juror":      {"agent": "idempotency-juror",      "skill": "idempotency-review",   "lane": "pipeline", "model": "sonnet"},
-    "cost-juror":             {"agent": "cost-juror",             "skill": "cost-review",          "lane": "pipeline", "model": "haiku"},
-    "data-quality-juror":     {"agent": "data-quality-juror",     "skill": "data-quality-review",  "lane": "pipeline", "model": "haiku"},
-    "governance-juror":       {"agent": "governance-juror",       "skill": "governance-review",    "lane": "pipeline", "model": "sonnet"},
-    "go-concurrency-juror":   {"agent": "go-concurrency-juror",   "skill": "go-concurrency-review",     "lane": "go",       "model": "sonnet"},
-    "go-error-handling-juror":{"agent": "go-error-handling-juror","skill": "go-error-handling-review",  "lane": "go",       "model": "haiku"},
-    "go-performance-juror":   {"agent": "go-performance-juror",   "skill": "go-performance-review",     "lane": "go",       "model": "haiku"},
-    "table-format-juror":     {"agent": "table-format-juror",     "skill": "table-format-review",       "lane": "datalake", "model": "sonnet"},
-    "partitioning-layout-juror":{"agent": "partitioning-layout-juror","skill": "partitioning-layout-review","lane": "datalake","model": "sonnet"},
-    "storage-format-juror":   {"agent": "storage-format-juror",   "skill": "storage-format-review",     "lane": "datalake", "model": "haiku"},
-    "terraform-juror":        {"agent": "terraform-juror",        "skill": "terraform-review",          "lane": "iac",      "model": "sonnet"},
-    "deployment-juror":       {"agent": "deployment-juror",       "skill": "deployment-review",         "lane": "deploy",   "model": "sonnet"}
+    "correctness-juror": {
+      "agent": "correctness-juror",
+      "skill": "correctness-review",
+      "lane": "code",
+      "model": "sonnet"
+    },
+    "security-juror": {
+      "agent": "security-juror",
+      "skill": "security-review",
+      "lane": "code",
+      "model": "sonnet"
+    },
+    "structure-juror": {
+      "agent": "structure-juror",
+      "skill": "structure-review",
+      "lane": "code",
+      "model": "haiku"
+    },
+    "observability-juror": {
+      "agent": "observability-juror",
+      "skill": "observability-review",
+      "lane": "code",
+      "model": "haiku"
+    },
+    "interface-compat-juror": {
+      "agent": "interface-compat-juror",
+      "skill": "interface-review",
+      "lane": "code",
+      "model": "sonnet"
+    },
+    "data-contract-juror": {
+      "agent": "data-contract-juror",
+      "skill": "data-contract-review",
+      "lane": "pipeline",
+      "model": "sonnet"
+    },
+    "idempotency-juror": {
+      "agent": "idempotency-juror",
+      "skill": "idempotency-review",
+      "lane": "pipeline",
+      "model": "sonnet"
+    },
+    "cost-juror": {
+      "agent": "cost-juror",
+      "skill": "cost-review",
+      "lane": "pipeline",
+      "model": "haiku"
+    },
+    "data-quality-juror": {
+      "agent": "data-quality-juror",
+      "skill": "data-quality-review",
+      "lane": "pipeline",
+      "model": "haiku"
+    },
+    "governance-juror": {
+      "agent": "governance-juror",
+      "skill": "governance-review",
+      "lane": "pipeline",
+      "model": "sonnet"
+    },
+    "go-concurrency-juror": {
+      "agent": "go-concurrency-juror",
+      "skill": "go-concurrency-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "go-error-handling-juror": {
+      "agent": "go-error-handling-juror",
+      "skill": "go-error-handling-review",
+      "lane": "go",
+      "model": "haiku"
+    },
+    "go-performance-juror": {
+      "agent": "go-performance-juror",
+      "skill": "go-performance-review",
+      "lane": "go",
+      "model": "haiku"
+    },
+    "table-format-juror": {
+      "agent": "table-format-juror",
+      "skill": "table-format-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
+    "partitioning-layout-juror": {
+      "agent": "partitioning-layout-juror",
+      "skill": "partitioning-layout-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
+    "storage-format-juror": {
+      "agent": "storage-format-juror",
+      "skill": "storage-format-review",
+      "lane": "datalake",
+      "model": "haiku"
+    },
+    "terraform-juror": {
+      "agent": "terraform-juror",
+      "skill": "terraform-review",
+      "lane": "iac",
+      "model": "sonnet"
+    },
+    "deployment-juror": {
+      "agent": "deployment-juror",
+      "skill": "deployment-review",
+      "lane": "deploy",
+      "model": "sonnet"
+    },
+    "dimensional-modeling-juror": {
+      "agent": "dimensional-modeling-juror",
+      "skill": "dimensional-modeling-review",
+      "lane": "data-modeling",
+      "model": "sonnet"
+    },
+    "slowly-changing-dimensions-juror": {
+      "agent": "slowly-changing-dimensions-juror",
+      "skill": "slowly-changing-dimensions-review",
+      "lane": "data-modeling",
+      "model": "sonnet"
+    },
+    "normalization-relational-juror": {
+      "agent": "normalization-relational-juror",
+      "skill": "normalization-relational-review",
+      "lane": "data-modeling",
+      "model": "sonnet"
+    },
+    "semantic-layer-metrics-juror": {
+      "agent": "semantic-layer-metrics-juror",
+      "skill": "semantic-layer-metrics-review",
+      "lane": "data-modeling",
+      "model": "sonnet"
+    },
+    "data-leakage-juror": {
+      "agent": "data-leakage-juror",
+      "skill": "data-leakage-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "feature-engineering-juror": {
+      "agent": "feature-engineering-juror",
+      "skill": "feature-engineering-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "model-evaluation-juror": {
+      "agent": "model-evaluation-juror",
+      "skill": "model-evaluation-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "ml-reproducibility-juror": {
+      "agent": "ml-reproducibility-juror",
+      "skill": "ml-reproducibility-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "model-serving-mlops-juror": {
+      "agent": "model-serving-mlops-juror",
+      "skill": "model-serving-mlops-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "model-monitoring-drift-juror": {
+      "agent": "model-monitoring-drift-juror",
+      "skill": "model-monitoring-drift-review",
+      "lane": "machine-learning",
+      "model": "sonnet"
+    },
+    "statistical-rigor-juror": {
+      "agent": "statistical-rigor-juror",
+      "skill": "statistical-rigor-review",
+      "lane": "data-science",
+      "model": "sonnet"
+    },
+    "experimentation-abtest-juror": {
+      "agent": "experimentation-abtest-juror",
+      "skill": "experimentation-abtest-review",
+      "lane": "data-science",
+      "model": "sonnet"
+    },
+    "causal-inference-juror": {
+      "agent": "causal-inference-juror",
+      "skill": "causal-inference-review",
+      "lane": "data-science",
+      "model": "sonnet"
+    },
+    "notebook-productionization-juror": {
+      "agent": "notebook-productionization-juror",
+      "skill": "notebook-productionization-review",
+      "lane": "data-science",
+      "model": "sonnet"
+    },
+    "streaming-eventtime-juror": {
+      "agent": "streaming-eventtime-juror",
+      "skill": "streaming-eventtime-review",
+      "lane": "data-platforms",
+      "model": "sonnet"
+    },
+    "orchestration-dag-juror": {
+      "agent": "orchestration-dag-juror",
+      "skill": "orchestration-dag-review",
+      "lane": "data-platforms",
+      "model": "sonnet"
+    },
+    "query-performance-sql-juror": {
+      "agent": "query-performance-sql-juror",
+      "skill": "query-performance-sql-review",
+      "lane": "data-platforms",
+      "model": "sonnet"
+    },
+    "distributed-compute-spark-juror": {
+      "agent": "distributed-compute-spark-juror",
+      "skill": "distributed-compute-spark-review",
+      "lane": "data-platforms",
+      "model": "sonnet"
+    },
+    "algorithmic-complexity-juror": {
+      "agent": "algorithmic-complexity-juror",
+      "skill": "algorithmic-complexity-review",
+      "lane": "ds-and-algorithms",
+      "model": "sonnet"
+    },
+    "data-structure-selection-juror": {
+      "agent": "data-structure-selection-juror",
+      "skill": "data-structure-selection-review",
+      "lane": "ds-and-algorithms",
+      "model": "sonnet"
+    }
   },
   "presets": {
-    "quick": ["correctness-juror", "security-juror"],
-    "code-full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror"],
-    "pipeline": ["data-contract-juror", "idempotency-juror", "data-quality-juror", "cost-juror"],
-    "security-sweep": ["security-juror", "governance-juror", "data-contract-juror"],
-    "go": ["correctness-juror", "security-juror", "go-concurrency-juror", "go-error-handling-juror", "go-performance-juror"],
-    "datalake": ["data-contract-juror", "idempotency-juror", "data-quality-juror", "table-format-juror", "partitioning-layout-juror", "storage-format-juror"],
-    "iac": ["terraform-juror", "security-juror"],
-    "deploy": ["deployment-juror", "security-juror"],
-    "full": ["correctness-juror", "security-juror", "structure-juror", "observability-juror", "interface-compat-juror", "data-contract-juror", "idempotency-juror", "cost-juror", "data-quality-juror", "governance-juror", "go-concurrency-juror", "go-error-handling-juror", "go-performance-juror", "table-format-juror", "partitioning-layout-juror", "storage-format-juror", "terraform-juror", "deployment-juror"]
+    "quick": [
+      "correctness-juror",
+      "security-juror"
+    ],
+    "code-full": [
+      "correctness-juror",
+      "security-juror",
+      "structure-juror",
+      "observability-juror",
+      "interface-compat-juror"
+    ],
+    "pipeline": [
+      "data-contract-juror",
+      "idempotency-juror",
+      "data-quality-juror",
+      "cost-juror"
+    ],
+    "security-sweep": [
+      "security-juror",
+      "governance-juror",
+      "data-contract-juror"
+    ],
+    "go": [
+      "correctness-juror",
+      "security-juror",
+      "go-concurrency-juror",
+      "go-error-handling-juror",
+      "go-performance-juror"
+    ],
+    "datalake": [
+      "data-contract-juror",
+      "idempotency-juror",
+      "data-quality-juror",
+      "table-format-juror",
+      "partitioning-layout-juror",
+      "storage-format-juror"
+    ],
+    "iac": [
+      "terraform-juror",
+      "security-juror"
+    ],
+    "deploy": [
+      "deployment-juror",
+      "security-juror"
+    ],
+    "full": [
+      "correctness-juror",
+      "security-juror",
+      "structure-juror",
+      "observability-juror",
+      "interface-compat-juror",
+      "data-contract-juror",
+      "idempotency-juror",
+      "cost-juror",
+      "data-quality-juror",
+      "governance-juror",
+      "go-concurrency-juror",
+      "go-error-handling-juror",
+      "go-performance-juror",
+      "table-format-juror",
+      "partitioning-layout-juror",
+      "storage-format-juror",
+      "terraform-juror",
+      "deployment-juror",
+      "dimensional-modeling-juror",
+      "slowly-changing-dimensions-juror",
+      "normalization-relational-juror",
+      "semantic-layer-metrics-juror",
+      "data-leakage-juror",
+      "feature-engineering-juror",
+      "model-evaluation-juror",
+      "ml-reproducibility-juror",
+      "model-serving-mlops-juror",
+      "model-monitoring-drift-juror",
+      "statistical-rigor-juror",
+      "experimentation-abtest-juror",
+      "causal-inference-juror",
+      "notebook-productionization-juror",
+      "streaming-eventtime-juror",
+      "orchestration-dag-juror",
+      "query-performance-sql-juror",
+      "distributed-compute-spark-juror",
+      "algorithmic-complexity-juror",
+      "data-structure-selection-juror"
+    ],
+    "data-modeling": [
+      "dimensional-modeling-juror",
+      "slowly-changing-dimensions-juror",
+      "normalization-relational-juror",
+      "semantic-layer-metrics-juror"
+    ],
+    "ml": [
+      "data-leakage-juror",
+      "feature-engineering-juror",
+      "model-evaluation-juror",
+      "ml-reproducibility-juror",
+      "model-serving-mlops-juror",
+      "model-monitoring-drift-juror"
+    ],
+    "data-science": [
+      "statistical-rigor-juror",
+      "experimentation-abtest-juror",
+      "causal-inference-juror",
+      "notebook-productionization-juror"
+    ],
+    "data-platforms": [
+      "streaming-eventtime-juror",
+      "orchestration-dag-juror",
+      "query-performance-sql-juror",
+      "distributed-compute-spark-juror"
+    ],
+    "dsa": [
+      "algorithmic-complexity-juror",
+      "data-structure-selection-juror"
+    ]
   }
 }
