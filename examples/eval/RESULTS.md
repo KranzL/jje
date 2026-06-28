@@ -103,3 +103,59 @@ The eval that would finally produce failures (and the research predicts it will)
 changes**, graded the same way. That tests whether the juror can *locate* the
 defect under realistic noise, not just judge an isolated snippet. That is the
 pass worth running next.
+
+---
+
+# Scale scorecard (third pass — realistic multi-file PRs)
+
+38 multi-file PRs (avg 7.3 files, 380 files total), each with one buried disguised
+defect among legitimate distractors. Juror reviews the whole PR; a judge scores
+recall (located the buried defect) and false alarms (flagged distractor/other code).
+
+**Recall 35/38 (92%)** · **Perfectly clean (caught + zero false alarms) 21/38** ·
+**17 total false alarms across 15 jurors.** This is the first pass that produced
+failures — and they are not random.
+
+## The 3 recall misses — all un-tool-backed subtle-diff lanes
+
+| Juror | What it missed | Why |
+|---|---|---|
+| `interface-compat` | a public type narrowed (`Record<string,string\|string[]>` -> `Record<string,string>`) buried among additive + default-value changes | a structural surface diff that is hard to spot by reading and trivial for an API-differ |
+| `data-contract` | a `decimal(18,4)->(18,2)` scale cut on a consumed column, sitting next to a *widening* distractor | a numeric-precision diff; the eye slides past it, a schema-diff parser would not |
+| `terraform` | the buried IAM-wildcard / open-SG defect — it flagged a *missing-backend distractor* instead | **checkov/trivy were not installed**, so it fell back to manual greps and missed it |
+
+The common thread: the miss is a **subtle structural diff** (type narrowing, scale
+reduction, IAM scoping) that is hard to read out of a 7-file diff but **trivial for
+the right tool**. This is the sharpest possible confirmation of the research's
+biggest lever: **tool-back the lanes.** The reasoning-only review loses the needle
+under noise; the tool finds it regardless of burial. terraform is the clinching
+case — the *same* juror that aced the isolated adversarial fixture missed the
+buried one purely because its scanner was absent.
+
+## False alarms cluster in the reasoning lanes
+
+The 15 false-alarm-prone jurors (deployment x2, model-serving-mlops x2, then the
+data-science/ML/modeling judgment lanes) are overwhelmingly the **un-tool-backed**
+ones. The tool-backed lanes (security, correctness, go-concurrency, cost,
+query-perf, algorithmic-complexity, ...) were clean on both axes — the executable
+check grounds the verdict and resists the look-alike bait. (Caveat: "false alarm" =
+any blocking finding other than the planted defect; a few may be legitimate
+secondary findings, but the fixtures' distractors were the intended bait.)
+
+## Verdict and the fix
+
+The roster is strong (92% recall under realistic noise, 21/38 flawless), and the
+weakness is **specific and addressable, not diffuse**: the soft spots are exactly
+the lanes whose judgment is not anchored by an executable check.
+
+Proposed fixes, highest leverage first:
+1. **Tool-back the 3 missers.** interface-compat -> a real API-differ
+   (api-extractor / tsc surface diff); data-contract -> a schema/contract diff
+   parser (flag precision/scale reductions + nullability tightening); terraform ->
+   require checkov + trivy (the manual-grep fallback is demonstrably weak under noise).
+2. **Tighten the false-alarm lanes.** Add the "looks-but-isn't" distractor patterns
+   to each reasoning skill's blocking bar (e.g. an allowlisted interpolation is not
+   injection; a correct dependency-inversion is not a layering violation; a widening
+   is not a narrowing), and reinforce "evidence required to block."
+3. **Re-run this scale pass after each fix** to confirm the miss closes and the
+   false-alarm count drops, tracking per-lane recall/precision over time.

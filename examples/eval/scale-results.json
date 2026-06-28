@@ -1,0 +1,306 @@
+[
+  {
+    "id": "correctness-scale",
+    "juror": "correctness-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: SlidingWindow.query at windo"
+  },
+  {
+    "id": "security-scale",
+    "juror": "security-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted SQL injection defect in build_order_"
+  },
+  {
+    "id": "structure-scale",
+    "juror": "structure-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: domain/pricing.py:10 imports"
+  },
+  {
+    "id": "observability-scale",
+    "juror": "observability-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: bare except Exception: conti"
+  },
+  {
+    "id": "interface-compat-scale",
+    "juror": "interface-compat-juror",
+    "blocking": 0,
+    "caught": false,
+    "false_alarms": 0,
+    "why": "The reviewer's blocking findings are empty, indicating the planted defect (HeaderMap type "
+  },
+  {
+    "id": "data-contract-scale",
+    "juror": "data-contract-juror",
+    "blocking": 0,
+    "caught": false,
+    "false_alarms": 0,
+    "why": "The reviewer's blocking findings list is empty, indicating no blocking findings were made "
+  },
+  {
+    "id": "idempotency-scale",
+    "juror": "idempotency-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: fct_payment_events.sql uses "
+  },
+  {
+    "id": "cost-scale",
+    "juror": "cost-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: int_endpoint_latency.sql lin"
+  },
+  {
+    "id": "data-quality-scale",
+    "juror": "data-quality-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The single blocking finding correctly identified the planted defect: fct_order_revenue joi"
+  },
+  {
+    "id": "governance-scale",
+    "juror": "governance-juror",
+    "blocking": 3,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Findings 1 and 2 correctly identify the planted defect: ext_ref (from backup_email PII) is"
+  },
+  {
+    "id": "go-concurrency-scale",
+    "juror": "go-concurrency-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: Collector.recomputeRates at "
+  },
+  {
+    "id": "go-error-handling-scale",
+    "juror": "go-error-handling-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: store/account.go:36 wrapping"
+  },
+  {
+    "id": "go-performance-scale",
+    "juror": "go-performance-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: regexp.Compile is called ins"
+  },
+  {
+    "id": "table-format-scale",
+    "juror": "table-format-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified fee_amount decimal(18,2) \u2192 decimal(18,4) as the "
+  },
+  {
+    "id": "partitioning-layout-scale",
+    "juror": "partitioning-layout-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The single blocking finding (grep:partition_by-cardinality) correctly identifies the plant"
+  },
+  {
+    "id": "storage-format-scale",
+    "juror": "storage-format-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: event_time in events_activit"
+  },
+  {
+    "id": "terraform-scale",
+    "juror": "terraform-juror",
+    "blocking": 1,
+    "caught": false,
+    "false_alarms": 1,
+    "why": "The blocking finding about missing remote-locked backend configuration (grep:missing-backe"
+  },
+  {
+    "id": "deployment-scale",
+    "juror": "deployment-juror",
+    "blocking": 3,
+    "caught": true,
+    "false_alarms": 2,
+    "why": "Finding 1 (verification-missing-prod-stage) correctly identifies the planted defect: prod-"
+  },
+  {
+    "id": "dimensional-modeling-scale",
+    "juror": "dimensional-modeling-juror",
+    "blocking": 3,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Findings 1 and 2 correctly identify the planted defect: invoices.invoice_total (header-gra"
+  },
+  {
+    "id": "slowly-changing-dimensions-scale",
+    "juror": "slowly-changing-dimensions-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: fct_orders_enriched.sql line"
+  },
+  {
+    "id": "normalization-relational-scale",
+    "juror": "normalization-relational-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identifies the planted defect: products.sku is declared as "
+  },
+  {
+    "id": "semantic-layer-metrics-scale",
+    "juror": "semantic-layer-metrics-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 (sem-fanout-semi-additive:subscription_mrr) directly identified the planted defe"
+  },
+  {
+    "id": "data-leakage-scale",
+    "juror": "data-leakage-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The reviewer's blocking finding correctly identifies the planted defect: add_regional_chur"
+  },
+  {
+    "id": "feature-engineering-scale",
+    "juror": "feature-engineering-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: account_balance.attach() at "
+  },
+  {
+    "id": "model-evaluation-scale",
+    "juror": "model-evaluation-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 correctly identifies the planted defect: the promotion gate and headline judge o"
+  },
+  {
+    "id": "ml-reproducibility-scale",
+    "juror": "ml-reproducibility-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 (repro:dataloader-worker-seed) correctly identifies the planted defect: DataLoad"
+  },
+  {
+    "id": "model-serving-mlops-scale",
+    "juror": "model-serving-mlops-juror",
+    "blocking": 3,
+    "caught": true,
+    "false_alarms": 2,
+    "why": "Finding 1 correctly identified the planted defect: serving imputes missing numerics with h"
+  },
+  {
+    "id": "model-monitoring-drift-scale",
+    "juror": "model-monitoring-drift-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Blocking finding 2 directly identifies the planted defect: monitor.py fabricates concept/p"
+  },
+  {
+    "id": "statistical-rigor-scale",
+    "juror": "statistical-rigor-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect at cohort_analysis.py:63-69 a"
+  },
+  {
+    "id": "experimentation-abtest-scale",
+    "juror": "experimentation-abtest-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 correctly identifies the planted defect (revenue_per_session variance understate"
+  },
+  {
+    "id": "causal-inference-scale",
+    "juror": "causal-inference-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 (causal-over-adjustment-mediator) correctly identifies the planted defect: activ"
+  },
+  {
+    "id": "notebook-productionization-scale",
+    "juror": "notebook-productionization-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 (nb-hidden-state:execution_count-nonmonotonic+symbol-before-def) correctly ident"
+  },
+  {
+    "id": "streaming-eventtime-scale",
+    "juror": "streaming-eventtime-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 correctly caught the planted defect: RevenueAggregationJob.java:47 uses ingestTi"
+  },
+  {
+    "id": "orchestration-dag-scale",
+    "juror": "orchestration-dag-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 1 correctly identifies the planted defect: export_attribution_snapshot using pendu"
+  },
+  {
+    "id": "query-performance-sql-scale",
+    "juror": "query-performance-sql-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding qperf:sargability-cast-on-cluster-key correctly identifies THE plante"
+  },
+  {
+    "id": "distributed-compute-spark-scale",
+    "juror": "distributed-compute-spark-juror",
+    "blocking": 2,
+    "caught": true,
+    "false_alarms": 1,
+    "why": "Finding 2 (spark-plan:broadcast-growing-dimension) directly identifies the planted defect:"
+  },
+  {
+    "id": "algorithmic-complexity-scale",
+    "juror": "algorithmic-complexity-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The blocking finding correctly identified the planted defect: list-based membership testin"
+  },
+  {
+    "id": "data-structure-selection-scale",
+    "juror": "data-structure-selection-juror",
+    "blocking": 1,
+    "caught": true,
+    "false_alarms": 0,
+    "why": "The reviewer's single blocking finding correctly identified the planted defect: agg_creato"
+  }
+]
