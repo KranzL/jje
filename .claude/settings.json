@@ -30,7 +30,14 @@
       "Bash(pytest*)",
       "Bash(dbt parse*)",
       "Bash(dbt compile*)",
-      "Bash(dbt test*)"
+      "Bash(dbt test*)",
+      "Bash(checkov*)",
+      "Bash(trivy*)",
+      "Bash(tflint*)",
+      "Bash(infracost*)",
+      "Bash(conftest*)",
+      "Bash(kubeconform*)",
+      "Bash(terraform*)"
     ]
   },
   "hooks": {
@@ -51,6 +58,17 @@
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/jje-loop-guard.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/jje-hot-cache.sh",
             "timeout": 10
           }
         ]

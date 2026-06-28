@@ -45,9 +45,20 @@ creates/modifies (EBS `encrypted`, RDS `storage_encrypted`, S3 SSE); over-permis
 IAM (Action `"*"`/`service:*` with Resource `"*"`; broad `AdministratorAccess`);
 public RDS (`publicly_accessible = true`); plaintext secrets in `.tf`/`.tfvars`;
 `terraform validate` failure; committed `*.tfstate` or no remote-locked backend;
-unpinned providers/modules. ADVISORY: infracost increases (blocking only vs an
-explicit budget threshold), count-vs-for_each style, fmt/naming nits,
-low/medium-severity scanner findings, any tool skipped. No-evidence = advisory by rule.
+unpinned providers/modules.
+
+**Scanner-required rule (the lane has no safe grep-only fallback).** A buried IAM
+wildcard or open SG is not reliably found by reading `.tf` — it needs `checkov`
+or `trivy`. So if `$CHANGED` contains real AWS resources (IAM, SG, S3, RDS, EBS,
+KMS, etc.) AND **neither `checkov` nor `trivy` ran** (both in `skipped[]`), emit
+one `blocking: true` finding `tf-unverifiable: IaC security cannot be certified
+without a scanner — install checkov or trivy`. Manual greps are a supplement, not
+a substitute; a scanner-less IaC pass is NOT a clean pass.
+
+ADVISORY: infracost increases (blocking only vs an explicit budget threshold),
+count-vs-for_each style, fmt/naming nits, low/medium-severity scanner findings, a
+non-security tool skipped. No-evidence = advisory by rule (the missing scanner IS
+the evidence for the blocking rule above).
 
 ## 4. Emit the verdict
 One JSON object per `skills/jje-contract/SKILL.md`, written to

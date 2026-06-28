@@ -159,6 +159,19 @@ decides — JJE itself does not merge on escalate.)
    approved commit and consumes the marker. Then `$S close --run $RUN` to release
    the run lock.
 
+## 10. Close out — refresh the Hot Cache
+If `$CLAUDE_PROJECT_DIR/vault/` exists, keep its working memory current (it is
+auto-loaded at session start by the `jje-hot-cache` hook, so a fresh session
+reads "where did we leave off" without crawling the vault):
+1. **Overwrite** `vault/hot.md` with the new state — what this run changed, the
+   key facts, and the open threads. It is a cache, not a journal: keep it under
+   ~500 words, overwrite (do not append). Preserve the frontmatter and the
+   `[[wikilink]]` style.
+2. **Append** one dated line to `vault/log.md` summarizing the run (the log IS
+   append-only).
+Do this on ACCEPT and on ESCALATE alike — escalations are exactly what the next
+session needs to see first.
+
 ## State files (who writes what)
 | File | Writer |
 |---|---|
