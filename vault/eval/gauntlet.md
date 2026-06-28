@@ -12,7 +12,8 @@ Companion to the engineered [[scorecard|fixture eval]].
 |---|---|---|
 | ACCEPT + **user-forced** REVISE (first real run) | **PASS** | full loop → PR; surfaced 4 prompt papercuts (all fixed) |
 | **ESCALATE via contradiction** (#5) | **PASS** | Judge detected the contradiction **proactively at iter-1** (the smart path, not the oscillation/budget backstop); `record-contradiction` + ledger + clean exit; the conventions overlay reached each juror per-lane |
-| **jury-forced** REVISE → ACCEPT (#3) | TODO | the loop converging on its own (vs the user-forced REVISE above) |
+| overlay reaches juror + **no false-positive** (#10a) | **PASS** | convention was live, `structure-juror` ran with it, ACCEPT iter-1 — the juror correctly did NOT block a docstring that genuinely met the bar (Executor wrote `"""minutes per week; returns 'low','medium','high'"""`) |
+| **jury-forced** REVISE → ACCEPT (#3/#10b) | TODO | **Finding:** two organic attempts (security #2, docstring-convention #10a) both ACCEPTed iter-1 because the **Sonnet Executor is too good** — it self-heals every tool-detectable defect *before commit* (runs the suite itself), so only defects that no tool catches AND that it wouldn't do by default survive to a juror. A "write a good docstring" rule fails that test (good docstrings are the default). Retry = scenario **10b**: an `__all__`-surface convention orthogonal to default practice (`scoring.py` has no `__all__`) — near-guaranteed block → REVISE → add to `__all__` → ACCEPT. |
 | ESCALATE via budget (#4) | TODO | |
 | REPLAN (#6) | TODO | hardest to force with an LLM Executor |
 | terraform scanner-required (#8) | TODO | tests the tool-backing fix (`tf-unverifiable`) |
