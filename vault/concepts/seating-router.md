@@ -44,5 +44,10 @@ audit flagged as a human guess JJE should automate. Shipped d166b28.
   `governance-juror`); presets are only `custom` shorthand, not what the router seats by.
 
 ## Status
-Built + verified by adversarial review; **not yet exercised in a live `/jje` run** —
-the next validation is a werkschau shakedown. See [[hot]].
+Built + verified by adversarial review. **First live run (werkschau, 2026-06-28)
+validated the tier question, the GENUINE custom multi-select** (user picked the adds;
+core non-removable — the fix to the original "custom shouldn't pre-fill" complaint),
+**and — bonus — the [[hot|Hot Cache]] bootstrap firing correctly** (wrote to the
+project dir not the GC'd worktree; valid frontmatter on line 1). **Still pending: the
+`auto` router path itself** — that run chose `custom`, which skips the router. One
+`auto` run closes it. See [[hot]].

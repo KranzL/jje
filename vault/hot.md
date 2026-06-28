@@ -57,7 +57,10 @@ Highest leverage first (audit-ranked):
    correctness+security core plus only the lanes the plan touches; the user always
    edits. Both custom-picker requirements met (genuine multi-select; no silent 4-cap
    truncation, via free-text add/drop). Verified via an adversarial pass (~12 fixes).
-   **Untested live — a werkschau shakedown run is the natural next validation.**
+   **Live (werkschau 2026-06-28): tier question + genuine custom multi-select +
+   core-non-removable all validated; the Hot Cache bootstrap also fired correctly
+   (project-dir path, frontmatter line 1). PENDING: the `auto` router path itself —
+   that run chose `custom` (skips the router); one `auto` run closes it.**
 3. **Prompt caching** the shared juror prefix — ~90% off the replicated input.
 4. **Coverage check + Judge evidence spot-read** — ACCEPT = "no seated juror
    objected", not "correct". See [[jje-loop]].
