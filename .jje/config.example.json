@@ -7,6 +7,7 @@
   "ci_command": "make ci",
   "escalation_policy": "stop",
   "hot_cache": true,
+  "default_tier": "auto",
   "interactivity": {
     "level": "high",
     "max_questions_per_turn": 4
@@ -298,7 +299,7 @@
       "deployment-juror",
       "security-juror"
     ],
-    "full": [
+    "everything": [
       "correctness-juror",
       "security-juror",
       "structure-juror",

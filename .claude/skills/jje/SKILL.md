@@ -70,13 +70,49 @@ answers so the plan reflects them. On REPLAN, first `mv $RUN/plan.json
 $RUN/plan-v<n>.json`, then re-spawn the Planner with the Judge's feedback (and
 re-broker its new questions).
 
-## 2. Seat the jury (user entry point; per cycle)
-Read `presets` from `$CLAUDE_PROJECT_DIR/.jje/config.json` (fall back to
-`config.example.json`). Use AskUserQuestion to present the roster (`quick`,
-`code-full`, `pipeline`, `security-sweep`, `full`, `custom`). For `custom`, ask
-a second multi-select over the 10 juror ids. Resolve the choice to a juror-id
-list and write it to `$RUN/seating.json` as `{"seated": [...]}`.
-Re-seat ONLY on REPLAN. On REVISE, reuse the existing `seating.json` unchanged.
+## 2. Seat the jury (tiers + auto-router; user entry point, per cycle)
+Seating is by **tier**, not by guessing a lane preset. The plan already exists (§1),
+so the change's scope is known. Read the `jurors` roster and `default_tier` (default
+`auto`) from `$CLAUDE_PROJECT_DIR/.jje/config.json` (fall back to
+`config.example.json`). The four tiers:
+- **`quick`** — the core only: `correctness-juror` + `security-juror`.
+- **`auto`** (default) — the core PLUS the lanes the planned change actually touches,
+  chosen by the `router` subagent (no human guessing of presets).
+- **`full`** — the core plus every lane the change *plausibly* touches (thorough).
+- **`custom`** — you pick the jurors yourself.
+
+Steps:
+1. **Pick the tier.** Per §Interactivity: at `high`/`max`, AskUserQuestion the tier
+   (4 options — `auto` recommended first, then `quick`, `full`, `custom`). At
+   `normal`/`minimal`, use `default_tier` without asking.
+2. **Resolve to a juror list:**
+   - `quick` → `["correctness-juror","security-juror"]`.
+   - `auto` / `full` → spawn the **`router`** subagent (Read-only) with `$RUN/plan.json`,
+     the chosen tier, and the roster. It returns
+     `{seated, added, considered_but_skipped}`; use its `seated` list.
+   - `custom` → start from the core, then pick the rest in step 3. **Guard:** custom
+     only makes sense when interactivity will ask — if the level is `normal`/`minimal`
+     (no picker), fall back to `auto` (run the router) so you never silently seat
+     core-only, and note the fallback.
+3. **Let the user edit the seating whenever interactivity asks** (`high`/`max`). It is
+   a genuine choice, never an orchestrator-fixed set — that is the point of the redesign:
+   - Present the resolved jurors as a **pre-checked multi-select** to keep or uncheck,
+     with the router's one-line `why` per added lane, plus the most relevant
+     `considered_but_skipped` lanes as unchecked options to add. The **core
+     (correctness + security) is not removable**, so only the ADDED jurors need
+     uncheck options — which usually keeps the set within the 4-option cap.
+   - If the editable set still exceeds AskUserQuestion's **4 options** (common at
+     `full`), **paginate across several questions in one call** (the tool accepts
+     multiple questions) AND offer a free-text option that accepts both `add <id>` and
+     `drop <id>` — **never silently truncate**. The full roster is `config.json`'s
+     `jurors` map (also in the README); you edit by **juror id** (the authoritative
+     unit). The `presets` map is optional named shorthand and may not equal a lane
+     exactly (e.g. the `pipeline` preset omits `governance-juror`).
+   - At `normal`/`minimal`, skip the edit and seat the resolved list as-is.
+4. Write the final list to `$RUN/seating.json` as `{"seated": [...]}`.
+
+Re-seat ONLY on REPLAN (the plan changed → re-run the router). On REVISE, reuse the
+existing `seating.json` unchanged.
 
 ## 3. Start an iteration (authoritative counter + budget)
 Run `S start-iteration --run $RUN`.

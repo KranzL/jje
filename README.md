@@ -25,8 +25,8 @@ one Claude Code already uses.
 ```
 
 1. **Planner** drafts steps, files-in-scope, and explicit success criteria.
-2. You **seat the jury** — pick a preset (`quick`, `pipeline`, `full`, …) or
-   choose jurors individually. This is your one entry point per cycle.
+2. You pick a **seating tier** (`quick`/`auto`/`full`/`custom`); a Haiku **router**
+   seats the lanes the plan touches, and you edit its picks. Your one entry point per cycle.
 3. **Executor** builds the change on a scratch branch in an isolated git
    worktree — never on `main`.
 4. The **jury** reviews the candidate in parallel. Each juror is independent
@@ -167,25 +167,32 @@ blocking bar) and emits one verdict. Add your own with three files — see
 | `algorithmic-complexity-juror` | Big-O on data-scaling paths | Super-linear hot path on unbounded N, N+1 per-row work, unbounded materialization to single-node memory, fan-out explosion |
 | `data-structure-selection-juror` | Structure/index/sketch fit | Approximate structure where exact is required, one-sided-error gating a decision unsafely, wrong asymptotic for the volume, sketch with no error budget |
 
-### Presets
+### Seating: tiers + an auto-router
 
-| Preset | Jurors |
+You don't hand-pick a juror panel. You pick a **tier**, and a Haiku `router` reads
+the plan and seats the lanes the change actually touches — then you edit its picks.
+
+| Tier | Who reviews |
 |---|---|
-| `quick` | correctness + security |
-| `code-full` | all 5 code jurors |
-| `pipeline` | data-contract + idempotency + data-quality + cost |
-| `security-sweep` | security + governance + data-contract |
-| `go` | correctness + security + the 3 Go jurors |
-| `datalake` | data-contract + idempotency + data-quality + the 3 datalake jurors |
-| `iac` | terraform + security |
-| `deploy` | deployment + security |
-| `data-modeling` | the 4 modeling jurors (grain, SCD, normalization, metrics) |
-| `ml` | the 6 ML jurors (leakage, features, eval, repro, serving, drift) |
-| `data-science` | stats-rigor + experimentation + causal + notebook-prod |
-| `data-platforms` | streaming + orchestration + query-perf + spark |
-| `dsa` | algorithmic-complexity + data-structure-selection |
-| `full` | all 38 |
-| `custom` | choose individually |
+| `quick` | the core only: correctness + security |
+| `auto` (default) | the core + the lanes the change **clearly** touches (router-chosen) |
+| `full` | the core + every lane the change **plausibly** touches (thorough) |
+| `custom` | you start from the core and add jurors yourself (by id or named group); the router is not run |
+
+The **core (correctness + security) is always seated.** `auto` is the default and
+the point of the redesign: instead of guessing `datalake` vs `go` vs `code-full` by
+hand, the router maps the planned `files_in_scope` + request to lanes (`*.tf` →
+terraform, `*.go` → the Go jurors, a changed public signature → interface-compat,
+…) and seats only those — and you can always keep/uncheck its picks or add more. No
+silent truncation: if the relevant set is large, it surfaces the rest rather than
+capping at one page.
+
+The router seats by each juror's **`lane`** field, not by preset. The `presets` map
+is a separate convenience for `custom` — named juror groups (`code-full`, `pipeline`,
+`datalake`, `go`, `iac`, `deploy`, `data-modeling`, `ml`, `data-science`,
+`data-platforms`, `dsa`) you can reference by name — though a preset may not equal a
+lane exactly (e.g. `pipeline` omits `governance-juror`). The full roster is the
+`jurors` map in `.jje/config.json`.
 
 ## Configuration
 
@@ -193,7 +200,8 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
 
 - `default_budget` (default `6`) — max Executor→Judge trips; CI-failure bounces
   count against it.
-- `default_preset`, `protected_branches`, `ci_command`.
+- `default_tier` (default `auto`) — `quick | auto | full | custom`; the seating tier
+  used when interactivity doesn't ask. `protected_branches`, `ci_command`.
 - `escalation_policy` — `stop` (default: hand the candidate + open findings to
   you and halt) or `ship-with-caveats`.
 - `hot_cache` (default `true`) — the per-repo Hot Cache (`vault/`). Set `false` to
@@ -206,7 +214,8 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
   plan, every revise, and any non-trivial decision; `minimal` runs autonomously
   (for unattended/CI). `max_questions_per_turn` caps each prompt batch.
 - `models` — per-role model overrides.
-- `jurors` + `presets` — the roster registry and the named panels.
+- `jurors` — the full roster registry the router seats from (by each juror's `lane`);
+  `presets` — optional named juror groups `custom` can reference (not used by the router).
 
 ### Project conventions (review against *your* standards)
 

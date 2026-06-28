@@ -6,6 +6,16 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Changed (seating redesign — tiers + an auto-router)
+- Seating is now by **tier** (`quick` / `auto` (default) / `full` / `custom`), not by
+  hand-picking a lane preset. A new Haiku **`router`** agent reads the finalized plan
+  and seats the correctness+security **core** plus only the lanes the change actually
+  touches; the user can always edit its picks (a genuine multi-select, with a free-text
+  add/drop escape so the AskUserQuestion 4-option cap never silently truncates). New
+  `default_tier` config key (default `auto`). The per-lane presets are retired from the
+  seating UX and kept only as the router's lane knowledge and `custom` shorthand; the
+  all-roster preset is renamed `everything` to avoid clashing with tier `full`.
+
 ### Added (20 principal-level data jurors — roster now 38)
 - **Data-modeling lane**: `dimensional-modeling`, `slowly-changing-dimensions`,
   `normalization-relational`, `semantic-layer-metrics` (preset `data-modeling`).
