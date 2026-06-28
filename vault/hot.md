@@ -41,10 +41,16 @@ right after a three-pass juror eval.
 - Added: the eval corpus (`examples/eval/`) — floor + adversarial + scale.
 
 ## Active threads
-1. **Apply the tool-backing fixes** (highest leverage): [[interface-compat]] → a
-   TS API-differ; [[data-contract]] → a schema/precision-diff parser;
-   [[terraform]] → hard-require checkov + trivy.
-2. **Tighten the false-alarm reasoning lanes**: add "looks-but-isn't" distractor
-   patterns to each blocking bar.
-3. **Re-run [[scale-eval]]** after each fix to confirm the miss closes.
-4. Optional: publish the plugin/marketplace; a `principal`/`data-full` preset.
+Audit (2026-06-28) reframed the priorities — biggest gaps, highest leverage first:
+1. **Diff-router (Haiku triage)** — seat only the lanes the diff touches. Fixes
+   *both* cost (don't spawn 38 of [[tool-backing|the jurors]] when 3 apply) and the
+   "coverage = seating, done by hand" assumption. Top recommendation.
+2. **Prompt caching** the shared prefix (contract + diff) across jurors — ~90% off
+   the replicated input. Cheapest big win.
+3. **Coverage check + Judge evidence spot-read** — the Judge is blind (ACCEPT =
+   "no seated juror objected", not "correct"). See [[jje-loop]].
+4. **Skipped-core = escalate, systemically** (done for 3 lanes via [[tool-backing]]).
+5. **Prove the loop loops** — one real multi-iteration run (REVISE/REPLAN/ESCALATE)
+   on a large PR; the loop has only ever run once, trivially. See [[scale-eval]].
+6. Model right-sizing (31/38 on Sonnet vs config's haiku default); caveman ONLY on
+   Judge/Planner/Executor prose, never jurors.

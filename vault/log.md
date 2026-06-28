@@ -4,6 +4,8 @@ tags: [meta, log]
 ---
 # Operation log (append-only, newest first)
 
+- **2026-06-28** — Wired the [[hot|Hot Cache]] into the workflow (SessionStart hook + /jje close-out); applied the 3 [[tool-backing]] fixes (interface-compat/data-contract/terraform). Ran an assumptions+token audit: the [[jje-loop|loop]] is a strong *gate* but not yet a *loop* (never looped live); jurors are correlated (all Claude); the Judge is coverage-blind; top token lever is prompt caching + a Haiku diff-router.
+
 - **2026-06-28** — Built the `vault/` Obsidian knowledge graph (claude-obsidian
   Hot Cache pattern): [[hot]] + [[MOC]] + this log + 38 [[scorecard|juror notes]],
   11 lane MOCs, 14 preset notes, 5 research notes, 4 eval notes, 4 concept notes.
