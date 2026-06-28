@@ -29,7 +29,7 @@ tags: [meta, moc]
 - [[scorecard]] · [[floor-eval]] · [[adversarial-eval]] · [[scale-eval]] · [[gauntlet]] (live end-to-end)
 
 ## Concepts
-- [[jje-loop]] · [[tool-backing]] · [[safety-model]] · [[conventions-overlay]]
+- [[jje-loop]] · [[tool-backing]] · [[safety-model]] · [[conventions-overlay]] · [[seating-router]]
 
 ## Meta
 - [[hot]] (Hot Cache) · [[log]] (operation log)
