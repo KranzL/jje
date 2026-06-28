@@ -4,6 +4,8 @@ tags: [meta, log]
 ---
 # Operation log (append-only, newest first)
 
+- **2026-06-28** — DECISION (mid-gauntlet): redesign jury seating to **always-on core (correctness+security) + a Haiku diff-router** for lane specialists; retire per-lane presets, keep quick/auto/full/custom tiers. Build after the gauntlet. (User: preset-by-lane = a human guess JJE should automate.)
+
 - **2026-06-28** — FIRST real end-to-end `/jje` run: a real multi-iteration run on a private test repo, shipped via a PR (Planner+4 broker Qs, jury `quick`, Judge ACCEPT, a user-driven REVISE override, iter-2 ACCEPT, CI gate, PR, clean close). Closes the audit's biggest gap ([[jje-loop|the loop looped]]). Fixed 4 papercuts it surfaced (zsh helper, gitignore-scope, phantom follow-up, PR marker).
 
 - **2026-06-28** — Wired the [[hot|Hot Cache]] into the workflow (SessionStart hook + /jje close-out); applied the 3 [[tool-backing]] fixes (interface-compat/data-contract/terraform). Ran an assumptions+token audit: the [[jje-loop|loop]] is a strong *gate* but not yet a *loop* (never looped live); jurors are correlated (all Claude); the Judge is coverage-blind; top token lever is prompt caching + a Haiku diff-router.

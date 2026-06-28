@@ -40,8 +40,12 @@ fixed the 4 papercuts it surfaced.
 Highest leverage first (audit-ranked):
 1. **Run the rest of the gauntlet** (`JJE-GAUNTLET.md`, fixed harness): jury-forced
    REVISE / both ESCALATEs / REPLAN / terraform-scanner-required / coverage-blind.
-2. **Diff-router (Haiku triage)** — seat only the lanes the diff touches: cost +
-   the "coverage = seating by hand" gap. Top build.
+2. **[DECIDED — build after the gauntlet] Seating redesign.** Always-on **core**
+   (correctness + security, seated on every run) + a **Haiku diff-router** that
+   adds only the lane specialists the diff warrants. Retire the per-lane presets;
+   keep tiers `quick` / `auto` (default) / `full` / `custom`. Replaces
+   "which preset?" (a human guess JJE should automate) and slashes cost. This is
+   the audit's #1 build, now with an agreed shape.
 3. **Prompt caching** the shared juror prefix — ~90% off the replicated input.
 4. **Coverage check + Judge evidence spot-read** — ACCEPT = "no seated juror
    objected", not "correct". See [[jje-loop]].
