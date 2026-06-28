@@ -38,8 +38,9 @@ fixed the 4 papercuts it surfaced.
 
 ## Active threads
 Highest leverage first (audit-ranked):
-1. **Run the rest of the gauntlet** (`JJE-GAUNTLET.md`, fixed harness): jury-forced
-   REVISE / both ESCALATEs / REPLAN / terraform-scanner-required / coverage-blind.
+1. **Finish the gauntlet** ([[gauntlet]]): ESCALATE/contradiction ✓ (Judge caught
+   it proactively). Remaining: jury-forced REVISE→ACCEPT, budget-ESCALATE, REPLAN,
+   terraform-scanner-required, coverage-blind, large-PR.
 2. **[DECIDED — build after the gauntlet] Seating redesign.** Always-on **core**
    (correctness + security, seated on every run) + a **Haiku diff-router** that
    adds only the lane specialists the diff warrants. Retire the per-lane presets;

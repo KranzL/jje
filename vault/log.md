@@ -4,6 +4,8 @@ tags: [meta, log]
 ---
 # Operation log (append-only, newest first)
 
+- **2026-06-28** — Gauntlet [[gauntlet|scenario 5]] (ESCALATE via contradiction): **PASS** — the Judge detected the contradiction proactively at iter-1 and exited cleanly (not the backstop). Closes the audit's 'contradiction/ESCALATE never exercised' gap.
+
 - **2026-06-28** — DECISION (mid-gauntlet): redesign jury seating to **always-on core (correctness+security) + a Haiku diff-router** for lane specialists; retire per-lane presets, keep quick/auto/full/custom tiers. Build after the gauntlet. (User: preset-by-lane = a human guess JJE should automate.)
 
 - **2026-06-28** — FIRST real end-to-end `/jje` run: a real multi-iteration run on a private test repo, shipped via a PR (Planner+4 broker Qs, jury `quick`, Judge ACCEPT, a user-driven REVISE override, iter-2 ACCEPT, CI gate, PR, clean close). Closes the audit's biggest gap ([[jje-loop|the loop looped]]). Fixed 4 papercuts it surfaced (zsh helper, gitignore-scope, phantom follow-up, PR marker).

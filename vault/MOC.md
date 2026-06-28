@@ -26,7 +26,7 @@ tags: [meta, moc]
 - [[agent-design]] · [[principal-data-jurors]] · [[iac-terraform]] · [[kargo-deployment]] · [[lakehouse]] (private)
 
 ## Eval
-- [[scorecard]] · [[floor-eval]] · [[adversarial-eval]] · [[scale-eval]]
+- [[scorecard]] · [[floor-eval]] · [[adversarial-eval]] · [[scale-eval]] · [[gauntlet]] (live end-to-end)
 
 ## Concepts
 - [[jje-loop]] · [[tool-backing]] · [[safety-model]] · [[conventions-overlay]]
