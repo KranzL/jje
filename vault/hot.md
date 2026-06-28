@@ -32,6 +32,11 @@ fixed the 4 papercuts it surfaced.
   [[#Active threads|12-scenario gauntlet]] (`JJE-GAUNTLET.md`).
 
 ## Recent changes
+- **Made the [[hot|Hot Cache]] actually borrowable** (it was inert for any user
+  without a hand-built vault): §10 now **auto-seeds `vault/` on first run**, added a
+  real `hot_cache` config off-switch (honored by the hook + §10), hardened via an
+  adversarial verify pass (absolute paths, CI/`minimal` gating, escalate routes
+  through §10, jq `//`-bug fixed). See README "Hot Cache". (94631c7)
 - Fixed the 4 first-run papercuts; re-synced the test repo's harness with the fix.
 - Wired the [[hot|Hot Cache]] into the loop (SessionStart hook + /jje close-out).
 - Built the assumptions/token audit + the [[scale-eval|3-pass eval]].
