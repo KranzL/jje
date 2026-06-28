@@ -38,9 +38,14 @@ fixed the 4 papercuts it surfaced.
 
 ## Active threads
 Highest leverage first (audit-ranked):
-1. **Finish the gauntlet** ([[gauntlet]]): ESCALATE/contradiction ✓ (Judge caught
-   it proactively). Remaining: jury-forced REVISE→ACCEPT, budget-ESCALATE, REPLAN,
-   terraform-scanner-required, coverage-blind, large-PR.
+1. **Finish the gauntlet** ([[gauntlet]]): the **core loop is fully proven** —
+   ACCEPT, user-forced REVISE, **autonomous jury-forced REVISE→ACCEPT** (#10b ✓,
+   the `__all__`-convention orthogonal trick), ESCALATE/contradiction (#5 ✓). Last
+   headline route = **large multi-file PR, full panel** (#11). Backstops
+   (budget-ESCALATE, REPLAN, terraform-scanner, coverage-blind) optional.
+   **Lesson (#10b):** forcing a jury-forced REVISE needs a convention *orthogonal to
+   default good practice* — the Sonnet Executor self-heals anything tool-detectable
+   before commit, so realistic single-fn defects ACCEPT on iter-1.
 2. **[DECIDED — build after the gauntlet] Seating redesign.** Always-on **core**
    (correctness + security, seated on every run) + a **Haiku diff-router** that
    adds only the lane specialists the diff warrants. Retire the per-lane presets;
