@@ -47,6 +47,11 @@ Highest leverage first (audit-ranked):
    keep tiers `quick` / `auto` (default) / `full` / `custom`. Replaces
    "which preset?" (a human guess JJE should automate) and slashes cost. This is
    the audit's #1 build, now with an agreed shape.
+   **Hard requirement (user feedback):** `custom`/`auto` seating must be a GENUINE
+   user multi-select — the router pre-checks its recommendations but the USER
+   edits; the orchestrator must never pre-decide the juror set under a "custom"
+   label (today it shortcuts the 2-step into one pre-filled option because
+   AskUserQuestion caps at 4). The redesign owns fixing this.
 3. **Prompt caching** the shared juror prefix — ~90% off the replicated input.
 4. **Coverage check + Judge evidence spot-read** — ACCEPT = "no seated juror
    objected", not "correct". See [[jje-loop]].
