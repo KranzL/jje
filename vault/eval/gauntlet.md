@@ -18,7 +18,7 @@ Companion to the engineered [[scorecard|fixture eval]].
 | REPLAN (#6) | TODO | hardest to force with an LLM Executor |
 | terraform scanner-required (#8) | TODO | tests the tool-backing fix (`tf-unverifiable`) |
 | coverage-blind negative test (#12) | TODO | should wrongly ACCEPT a breaking change seated under `quick` |
-| large multi-file PR, full panel (#11) | TODO | convergence vs thrash; false alarms reaching the Judge |
+| large multi-file PR, full panel (#11) | **PASS** | 5-file +416/−36 gh_api cache feature, `code-full` panel (5 jurors), PR #4. **Converged in 3/6 iterations** (REVISE→REVISE→ACCEPT) with monotonically decreasing findings — no thrash, no oscillation. **1 blocking total** across 15 verdicts (observability: uncaught `OSError` on cache write — a real crash-on-long-extraction bug). **False-alarm rate ≈ 0**: 4 advisories total, ALL legitimate and actioned (perms `0o644`→`0o600/0o700`, auth-identity-in-key doc note, legacy-dir `chmod(0o700)`, a test-honesty note); `structure` + `interface-compat` stayed silent (no nitpicking). Security found the real hardening issues — the Executor preempted path-traversal by using SHA-256 keys, so security correctly focused on file perms. interface-compat correctly **cleared** the `gh_api` signature change (back-compat wrappers preserved). **Key finding: the audit's 17-false-alarm worry did NOT reproduce on a real change** — engineered fixtures with planted distractors trip jurors; a well-planned real diff from a competent Executor reviews precisely. |
 
 ## Proven so far
 - **The loop LOOPS end-to-end** — the audit's #1 gap, closed.
@@ -27,12 +27,19 @@ Companion to the engineered [[scorecard|fixture eval]].
 - **ESCALATE** exit + **contradiction detection** + ledger all work (smart path).
 - CI-artifact gate, PR delivery, marker lifecycle, worktree GC, run lock — all clean.
 
-## Still unproven
-The **large-PR stress** (full panel on a real multi-file diff — convergence vs
-thrash, false alarms reaching the Judge) is the last headline route. The lower-value
-backstops (budget-ESCALATE, REPLAN, terraform-scanner-required, coverage-blind) remain
-optional. See [[hot|active threads]].
+## Gauntlet complete — every headline route proven on a real repo
+- **ACCEPT** (first real run) ✓
+- **user-forced REVISE → ACCEPT** (calendar) ✓
+- **autonomous jury-forced REVISE → ACCEPT** (#10b, the `__all__` orthogonal trick) ✓
+- **ESCALATE via contradiction** (#5, Judge caught it proactively) ✓
+- **large multi-file PR, full 5-juror panel** (#11, 3-iter convergence, ~0 false alarms) ✓
 
-The **core loop is now fully proven**: ACCEPT, user-forced REVISE, **autonomous
-jury-forced REVISE→ACCEPT** (#10b), and ESCALATE-via-contradiction (#5) have all run
-clean end-to-end on a real repo.
+The biggest open audit worry — false-alarm spam from the panel — was **measured and
+did not reproduce** on a real change (#11: 4 advisories, all legitimate). The cross-
+juror-correlation and coverage-blind concerns remain theoretical here.
+
+### Optional backstops (lower value, not yet exercised live)
+budget-ESCALATE (#4 — partially shadowed by #11's budget headroom), REPLAN (#6 —
+hardest to force with a capable Executor), terraform-scanner-required (#8 — would
+test the `tf-unverifiable` tool-backing fix, needs a TF diff), coverage-blind (#12).
+None are on the critical path. See [[hot|active threads]].

@@ -9,8 +9,10 @@ tags: [meta, hot-cache]
 > Full map: [[MOC]].
 
 ## Last updated
-**2026-06-28** — The [[jje-loop|loop ran end-to-end for real]] for the first time;
-fixed the 4 papercuts it surfaced.
+**2026-06-28** — **The [[gauntlet]] is complete.** Every headline route is proven on
+a real repo (werkschau): ACCEPT, user-forced REVISE, autonomous jury-forced
+REVISE→ACCEPT, ESCALATE-via-contradiction, and the large multi-file full-panel PR
+(#11). Also made the [[hot|Hot Cache]] borrowable.
 
 ## Key recent facts
 - **JJE** = a generator–critic review harness for Claude Code, public at
@@ -43,14 +45,15 @@ fixed the 4 papercuts it surfaced.
 
 ## Active threads
 Highest leverage first (audit-ranked):
-1. **Finish the gauntlet** ([[gauntlet]]): the **core loop is fully proven** —
-   ACCEPT, user-forced REVISE, **autonomous jury-forced REVISE→ACCEPT** (#10b ✓,
-   the `__all__`-convention orthogonal trick), ESCALATE/contradiction (#5 ✓). Last
-   headline route = **large multi-file PR, full panel** (#11). Backstops
-   (budget-ESCALATE, REPLAN, terraform-scanner, coverage-blind) optional.
-   **Lesson (#10b):** forcing a jury-forced REVISE needs a convention *orthogonal to
-   default good practice* — the Sonnet Executor self-heals anything tool-detectable
-   before commit, so realistic single-fn defects ACCEPT on iter-1.
+1. **[GAUNTLET DONE ✓]** ([[gauntlet]]) every headline route proven on werkschau:
+   ACCEPT, user-forced REVISE, autonomous jury-forced REVISE→ACCEPT (#10b), ESCALATE/
+   contradiction (#5), large multi-file full-panel PR (#11: 3-iter convergence, ~0
+   false alarms — the audit's #1 worry did NOT reproduce on a real change). Optional
+   backstops remain (budget-ESCALATE, REPLAN, terraform-scanner, coverage-blind).
+   **Lessons:** (a) forcing a jury-forced REVISE needs a convention *orthogonal to
+   default good practice* (Sonnet Executor self-heals anything tool-detectable before
+   commit); (b) panel false-alarm spam is a *fixture* artifact, not a real-diff one.
+   **→ Next build: the seating redesign (#2 below) — now the top priority.**
 2. **[DECIDED — build after the gauntlet] Seating redesign.** Always-on **core**
    (correctness + security, seated on every run) + a **Haiku diff-router** that
    adds only the lane specialists the diff warrants. Retire the per-lane presets;
