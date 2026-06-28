@@ -5,6 +5,10 @@
 # hot cache. Keep the cache small (~500 words) so this stays cheap.
 set -euo pipefail
 PROJ="${CLAUDE_PROJECT_DIR:-$PWD}"
+CFG="$PROJ/.jje/config.json"
+if [ -f "$CFG" ] && [ "$(jq -r 'if .hot_cache == false then "false" else "true" end' "$CFG" 2>/dev/null)" = "false" ]; then
+  exit 0
+fi
 HOT="$PROJ/vault/hot.md"
 [ -f "$HOT" ] || exit 0
 CONTENT="$(cat "$HOT")"

@@ -196,6 +196,8 @@ Copy `.jje/config.example.json` to `.jje/config.json` and edit. Keys:
 - `default_preset`, `protected_branches`, `ci_command`.
 - `escalation_policy` — `stop` (default: hand the candidate + open findings to
   you and halt) or `ship-with-caveats`.
+- `hot_cache` (default `true`) — the per-repo Hot Cache (`vault/`). Set `false` to
+  disable both the first-run seeding and the `SessionStart` injection.
 - `oscillation.repeat_threshold` (default `2`) and `oscillation.detect_contradictions`.
 - `interactivity.level` — `minimal | normal | high | max` (default `high`). How
   much the loop pulls you in: the Planner/Executor/Judge are subagents that can't
@@ -215,6 +217,21 @@ the orchestrator passes each juror the section matching its domain, and `(blocki
 rules there become additional blocking bars. See `.jje/conventions.example.md`
 for the format. This is how a datalake juror learns, say, "the current table must
 keep its CDC exactly-once semantics" instead of only generic Iceberg advice.
+
+### Hot Cache (optional per-repo memory)
+
+JJE keeps a tiny working memory at `vault/` so a fresh session — and every future
+`/jje` run — starts knowing "where did we leave off?". A `SessionStart` hook injects
+`vault/hot.md` (a ~500-word cache, overwritten each run) as context, and each run's
+close-out refreshes it and appends a line to `vault/log.md`. The **first `/jje` run
+auto-seeds `vault/`** in your repo if it's absent — nothing to set up (skipped under
+`interactivity.level: minimal` / CI, which never creates the vault). It's local
+working memory: **not** gitignored by default, so add `vault/` to `.gitignore` if you
+don't want it committed. To turn the feature off, set `hot_cache: false` in
+`.jje/config.json` — that stops both the seeding and the injection; just deleting
+`vault/` won't do it, since the next run re-seeds it. (The `vault/` checked into
+*this* repo is JJE's own project memory and a worked example of the pattern — you
+don't inherit it; the canonical `cp -r .claude .jje` install doesn't copy it.)
 
 ## Safety model (tested, with honest limits)
 

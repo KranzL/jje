@@ -6,6 +6,7 @@
   ],
   "ci_command": "make ci",
   "escalation_policy": "stop",
+  "hot_cache": true,
   "interactivity": {
     "level": "high",
     "max_questions_per_turn": 4

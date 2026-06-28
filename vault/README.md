@@ -5,6 +5,14 @@ the 38 jurors, the research behind them, the three eval passes, and the core
 concepts. Open the `vault/` folder as an Obsidian vault to get backlinks + the
 graph view.
 
+> **This vault is JJE's own project memory** — the working notes from building and
+> dogfooding the harness — and doubles as a worked example of the Hot Cache pattern.
+> You do **not** inherit it: the canonical `cp -r .claude .jje` install does not copy
+> `vault/`, and your **first `/jje` run auto-seeds a fresh `vault/`** with empty
+> skeleton files (`hot.md`/`log.md`/`MOC.md`) in your own repo (skill §10; skipped
+> under `interactivity.level: minimal`). Browse this one to see the shape; yours
+> starts from those skeletons.
+
 It follows the **Hot Cache** pattern from
 [claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian):
 
@@ -38,5 +46,7 @@ vault/
   [research/lakehouse.md](research/lakehouse.md)).
 
 ## Keeping the Hot Cache fresh
-At the end of a working session, overwrite `hot.md` with the new "where did we
-leave off?" and append a line to `log.md`. That is the whole maintenance loop.
+JJE's own close-out (skill §10) does this automatically after each run — it
+overwrites `hot.md` with the new "where did we leave off?" and appends a line to
+`log.md`. You can also edit them by hand between runs. That is the whole
+maintenance loop.

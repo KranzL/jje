@@ -148,9 +148,10 @@ Judge's lean or the user's answer (the guards are the hard backstop).
 
 ## 8. Escalate (a real exit)
 `S escalate --run $RUN --reason "<...>"`. Hand the user `$RUN/ESCALATION.md`,
-the candidate branch, and the open findings, then stop. (Default policy is
-`stop`. If config sets `escalation_policy: ship-with-caveats`, the human still
-decides — JJE itself does not merge on escalate.)
+the candidate branch, and the open findings. Then **run the §10 close-out** (Hot
+Cache refresh/bootstrap) so the next session opens on the escalation, and stop.
+(Default policy is `stop`. If config sets `escalation_policy: ship-with-caveats`,
+the human still decides — JJE itself does not merge on escalate.)
 
 ## 9. CI = final gate
 1. `S ci --run $RUN`. This runs `ci_command` inside `<worktree>` on the scratch
@@ -170,18 +171,78 @@ decides — JJE itself does not merge on escalate.)
    worktree/branch, AND clears any unconsumed `.jje/COMMIT_APPROVED` so a stray
    future local commit can't be authorized by a leftover marker.
 
-## 10. Close out — refresh the Hot Cache
-If `$CLAUDE_PROJECT_DIR/vault/` exists, keep its working memory current (it is
-auto-loaded at session start by the `jje-hot-cache` hook, so a fresh session
-reads "where did we leave off" without crawling the vault):
-1. **Overwrite** `vault/hot.md` with the new state — what this run changed, the
-   key facts, and the open threads. It is a cache, not a journal: keep it under
-   ~500 words, overwrite (do not append). Preserve the frontmatter and the
-   `[[wikilink]]` style.
-2. **Append** one dated line to `vault/log.md` summarizing the run (the log IS
-   append-only).
-Do this on ACCEPT and on ESCALATE alike — escalations are exactly what the next
-session needs to see first.
+## 10. Close out — refresh the Hot Cache (auto-seeds on first run)
+JJE keeps a small per-repo working memory at `$CLAUDE_PROJECT_DIR/vault/` so a
+fresh session — and every future `/jje` run — starts with "where did we leave
+off?" (the `jje-hot-cache` SessionStart hook injects `vault/hot.md`). It is local
+working memory: **not** gitignored by default, so add `vault/` to `.gitignore` if
+you don't want it committed.
+
+This section runs on **both ACCEPT and ESCALATE** (escalations are exactly what the
+next session needs to see first — §8 routes here before it stops). It is
+**best-effort**: write only to **`$CLAUDE_PROJECT_DIR`** with absolute
+`$CLAUDE_PROJECT_DIR/vault/...` paths (never the scratch worktree — `close` has
+already GC'd it), and a write failure here must NOT unwind the accepted/merged
+result or report the run as failed.
+
+**Skip this whole section** (no bootstrap, no refresh) if config `hot_cache` is
+`false`, OR if `interactivity.level` is `minimal` and `$CLAUDE_PROJECT_DIR/vault/`
+does not already exist (unattended/CI must not *create* a vault — but it may refresh
+one a user already keeps).
+
+**Bootstrap:** if `$CLAUDE_PROJECT_DIR/vault/` does NOT exist, create it and seed
+exactly three files, then tell the user one line: *"Seeded a local `vault/` for
+cross-session memory — add it to `.gitignore` if you don't want it committed."*
+Only create what is missing; never overwrite an existing file. Write the content
+shown **between** the `~~~` fences below — the fences are display delimiters, NOT
+file content; each file must begin with its `---` YAML frontmatter on line 1. Use
+today's date for `<today>`.
+- `$CLAUDE_PROJECT_DIR/vault/hot.md`:
+  ~~~
+  ---
+  type: hot-cache
+  updated: <today>
+  tags: [meta, hot-cache]
+  ---
+  # Hot Cache — where did we leave off?
+
+  > Read first. ~500-word cache of current state, overwritten each run.
+
+  ## Last updated
+  <today> — first JJE run on this repo.
+
+  ## Key recent facts
+  - (overwritten after each run)
+
+  ## Active threads
+  - (none yet)
+  ~~~
+- `$CLAUDE_PROJECT_DIR/vault/log.md`:
+  ~~~
+  ---
+  type: log
+  tags: [meta, log]
+  ---
+  # Run log (append-only)
+  ~~~
+- `$CLAUDE_PROJECT_DIR/vault/MOC.md`:
+  ~~~
+  ---
+  type: moc
+  tags: [meta, moc]
+  ---
+  # Map of Content
+  JJE maintains `hot.md` (current state) and `log.md` (append-only) automatically.
+  Add your own notes and link them here.
+  ~~~
+
+**Refresh** (the vault now exists, whether pre-existing or just bootstrapped):
+1. **Overwrite** `$CLAUDE_PROJECT_DIR/vault/hot.md` with the new state — what this
+   run changed, the key facts, and the open threads. It is a cache, not a journal:
+   keep it under ~500 words, overwrite (do not append). Preserve the frontmatter and
+   the `[[wikilink]]` style.
+2. **Append** one dated line to `$CLAUDE_PROJECT_DIR/vault/log.md` summarizing the
+   run (the log IS append-only).
 
 ## State files (who writes what)
 | File | Writer |
