@@ -47,11 +47,17 @@ Highest leverage first (audit-ranked):
    keep tiers `quick` / `auto` (default) / `full` / `custom`. Replaces
    "which preset?" (a human guess JJE should automate) and slashes cost. This is
    the audit's #1 build, now with an agreed shape.
-   **Hard requirement (user feedback):** `custom`/`auto` seating must be a GENUINE
-   user multi-select — the router pre-checks its recommendations but the USER
-   edits; the orchestrator must never pre-decide the juror set under a "custom"
-   label (today it shortcuts the 2-step into one pre-filled option because
-   AskUserQuestion caps at 4). The redesign owns fixing this.
+   **Hard requirements (user feedback, two parts):**
+   (a) `custom`/`auto` seating must be a GENUINE user multi-select — the router
+   pre-checks its recommendations but the USER edits; never pre-decide the set
+   under a "custom" label.
+   (b) The custom picker must surface the FULL relevant roster, not a single
+   4-item page. Root cause: AskUserQuestion hard-caps at **4 options**, so a flat
+   "see all 38 and pick" is impossible in one widget — it can only show the top-4,
+   which silently hides relevant jurors on multi-lane changes (e.g. the large-PR
+   #11). Fix paths: the **router auto-seats** relevant lanes (so the human rarely
+   scrolls), plus a **hierarchical/paginated** manual picker (lane-group → jurors,
+   or multi-step) for override. The redesign owns both.
 3. **Prompt caching** the shared juror prefix — ~90% off the replicated input.
 4. **Coverage check + Judge evidence spot-read** — ACCEPT = "no seated juror
    objected", not "correct". See [[jje-loop]].
