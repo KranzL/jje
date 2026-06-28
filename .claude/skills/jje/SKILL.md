@@ -11,7 +11,12 @@ You are the orchestrator. You drive the loop on PORTABLE primitives only: you
 spawn every subagent yourself (no nested spawning), you keep trustworthy state
 by calling `jje_state.py` (never hand-edit the JSON), and you let the hooks
 enforce the hard guarantees. Do the steps in order. Use absolute paths.
-`S="python3 $CLAUDE_PROJECT_DIR/.claude/scripts/jje_state.py"`.
+
+Define the state helper as a shell **function** (a `S="…"` variable + `S init`
+breaks in zsh — the default macOS shell — because zsh does not word-split
+unquoted parameter expansions, so the very first command fails with exit 127):
+`S(){ python3 "$CLAUDE_PROJECT_DIR/.claude/scripts/jje_state.py" "$@"; }`
+Then call it as `S <subcommand> …` (no `$`), e.g. `S init --request "…"`.
 
 > **Spawn tool name:** this guide says "spawn the `<role>` subagent". Use your
 > subagent-spawn tool — it is named `Agent` (older Claude Code calls it `Task`);
@@ -45,7 +50,7 @@ answers into the next spawn of that role. Make options concrete; put your
 recommended option first. At `minimal`, pick sensible defaults and proceed.
 
 ## 0. Seed the run
-1. `$S init --request "$ARGUMENTS"` — capture `run_dir`, `scratch_branch`,
+1. `S init --request "$ARGUMENTS"` — capture `run_dir`, `scratch_branch`,
    `worktree`, `base_ref`, `budget`, `ci_command` from the JSON it prints. Use
    `RUN="<run_dir>"` below. If it errors that a run is already active, finish or
    `close` that run first (do not blindly `--force`).
@@ -74,7 +79,7 @@ list and write it to `$RUN/seating.json` as `{"seated": [...]}`.
 Re-seat ONLY on REPLAN. On REVISE, reuse the existing `seating.json` unchanged.
 
 ## 3. Start an iteration (authoritative counter + budget)
-Run `$S start-iteration --run $RUN`.
+Run `S start-iteration --run $RUN`.
 - If it exits non-zero with `iteration_budget_exhausted`, go to ESCALATE (§8).
 - Otherwise note the returned `iteration` number `<n>`.
 
@@ -114,7 +119,7 @@ Each juror writes exactly one verdict to
 `skills/jje-contract/SKILL.md`. Do not let a juror comment outside its lane.
 
 ## 6. Guards, then Judge
-1. `$S check-guards --run $RUN`. This folds this iteration's blocking findings
+1. `S check-guards --run $RUN`. This folds this iteration's blocking findings
    into the ledger and reports `recurring`, `contradictions`, `budget_remaining`,
    `recommend_escalate`.
 2. Spawn the `judge` subagent (Read-only). Give it the verdict dir, the plan, the
@@ -127,9 +132,9 @@ Each juror writes exactly one verdict to
    `clarifications` per §Interactivity and let the user settle the call BEFORE you
    record the decision** (the user's answer can override the Judge's lean for
    anything except the hard `recommend_escalate` backstop). If the Judge names a
-   contradictory pair, run `$S record-contradiction --run $RUN --a <fpA> --b <fpB>
+   contradictory pair, run `S record-contradiction --run $RUN --a <fpA> --b <fpB>
    --note "..."`.
-3. Record it: `$S record-decision --run $RUN --decision <D> --feedback "<...>"`.
+3. Record it: `S record-decision --run $RUN --decision <D> --feedback "<...>"`.
 
 If `recommend_escalate` is true, the decision MUST be ESCALATE regardless of the
 Judge's lean or the user's answer (the guards are the hard backstop).
@@ -142,22 +147,28 @@ Judge's lean or the user's answer (the guards are the hard backstop).
 - **ESCALATE** → §8.
 
 ## 8. Escalate (a real exit)
-`$S escalate --run $RUN --reason "<...>"`. Hand the user `$RUN/ESCALATION.md`,
+`S escalate --run $RUN --reason "<...>"`. Hand the user `$RUN/ESCALATION.md`,
 the candidate branch, and the open findings, then stop. (Default policy is
 `stop`. If config sets `escalation_policy: ship-with-caveats`, the human still
 decides — JJE itself does not merge on escalate.)
 
 ## 9. CI = final gate
-1. `$S ci --run $RUN`. This runs `ci_command` inside `<worktree>` on the scratch
+1. `S ci --run $RUN`. This runs `ci_command` inside `<worktree>` on the scratch
    branch and writes a verifiable `ci-result.json` (command, exit code, sha).
    Do NOT eyeball CI yourself — the artifact is what the gate trusts.
 2. If it exits non-zero (CI FAILED): this counts against the budget — return to
    §3 and treat the failure as REVISE feedback for the Executor.
-3. If CI is GREEN: `$S accept --run $RUN`. This validates the CI artifact
-   (exit 0, fresh, real sha) and only then writes `.jje/COMMIT_APPROVED`. Open a
-   PR / merge from the scratch branch; the `jje-ci-gate` hook permits the single
-   approved commit and consumes the marker. Then `$S close --run $RUN` to release
-   the run lock.
+3. If CI is GREEN: `S accept --run $RUN`. This validates the CI artifact
+   (exit 0, fresh, real sha) and only then writes `.jje/COMMIT_APPROVED`. Then
+   land the candidate (ask the user — merge vs PR is outward-facing):
+   - **Local merge to a protected branch:** the `jje-ci-gate` hook permits the
+     single approved commit and **consumes** the marker.
+   - **Open a PR** (`git push` the scratch branch + `gh pr create`): there is **no
+     local protected-branch commit, so the marker is NOT consumed** by the push.
+     That is fine — just do not leave it armed.
+   Either way, finish with `S close --run $RUN`: it releases the run lock, GCs the
+   worktree/branch, AND clears any unconsumed `.jje/COMMIT_APPROVED` so a stray
+   future local commit can't be authorized by a leftover marker.
 
 ## 10. Close out — refresh the Hot Cache
 If `$CLAUDE_PROJECT_DIR/vault/` exists, keep its working memory current (it is

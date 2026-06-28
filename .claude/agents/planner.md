@@ -25,6 +25,14 @@ the jury checks the candidate against, so make them concrete and verifiable
 unchanged"), never vague ("works well", "is clean"). Scope `files_in_scope`
 tightly so the Executor and jurors stay focused.
 
+**Check `files_in_scope` against gitignore.** Run `git check-ignore <path>` on each
+entry. A gitignored file (e.g. a `CLAUDE.md` the repo ignores) is absent from the
+candidate worktree and can never be committed or merged — work on it silently
+evaporates and never appears in any diff or verdict. Do NOT put an ignored file in
+scope: drop it, and if the task truly needs it, call that out in `risks` (and as a
+`questions_for_user` if it changes the approach) rather than planning work that
+cannot land.
+
 On a REPLAN you are re-invoked with the Judge's feedback explaining why the prior
 approach could not be made correct. Produce a genuinely different approach, not a
 restatement.

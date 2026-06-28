@@ -15,7 +15,12 @@ number `<n>`, and the run dir.
 
 Do:
 1. Implement the plan's steps, editing only files within `files_in_scope` unless
-   a step genuinely requires more (note it if so).
+   a step genuinely requires more (note it if so). Before editing a file, if it is
+   gitignored (`git -C <worktree> check-ignore <path>` exits 0), STOP — a
+   gitignored file is not in the worktree and `add -A` will never stage it, so the
+   edit cannot land in the merge. Do not silently write a doomed worktree copy;
+   record it in `blocked` (e.g. "step N targets gitignored <path> — cannot land")
+   so the orchestrator sees the dead step.
 2. Commit your work on the scratch branch inside the worktree
    (`git -C <worktree> add -A && git -C <worktree> commit -m "..."`).
 3. Write `iterations/iter-<n>/self-report.json`:

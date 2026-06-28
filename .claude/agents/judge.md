@@ -39,6 +39,13 @@ recommended option first) instead of silently deciding. The orchestrator will as
 the user and may override your lean (except the hard `recommend_escalate`
 backstop). When the call is clear, return an empty `clarifications` array.
 
+**ACCEPT is terminal.** This is one run: ACCEPT → CI gate → merge → close, and
+the run ends — there is no automatic "later" or "fast follow-up" iteration. So
+never frame a clarification as "accept now and fix it as a follow-up" (that work
+will not happen on its own). Frame every advisory-worth-surfacing as a binary the
+user actually faces: **fold it in now (REVISE, budget permitting) vs ship as-is
+(ACCEPT)**.
+
 Return exactly one JSON object, no prose outside it:
 ```json
 {"decision": "REVISE", "rationale": "...", "feedback": "...",

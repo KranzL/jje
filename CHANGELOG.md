@@ -23,6 +23,25 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
   review skill is an enforceable checklist with a principal-level blocking bar.
   Opt-in via the new presets; `quick`/`code-full` are unchanged.
 
+### Fixed (from the first real end-to-end run)
+- **zsh-breaking state helper.** The skill defined `S="python3 …"` then `$S init`,
+  which fails on zsh (the macOS default) because zsh does not word-split unquoted
+  expansions — the very first command exited 127. Replaced with a shell function
+  `S(){ … }` that works in both shells.
+- **Gitignored files in scope silently evaporate.** A plan that scoped a gitignored
+  file (`CLAUDE.md`) had that work written to a worktree copy that could never be
+  committed or appear in any diff/verdict. Planner now `git check-ignore`s every
+  `files_in_scope` entry (drops/flags ignored ones); Executor refuses to edit a
+  gitignored file and records it in `blocked`.
+- **The Judge's "fast follow-up" was a phantom.** ACCEPT is terminal (CI → merge →
+  close ends the run), so a clarification offering "accept now, fix as a follow-up"
+  promised work that never happens. The Judge now frames advisories as fold-in-now
+  (REVISE) vs ship-as-is (ACCEPT).
+- **Marker lifecycle on the PR path.** The skill assumed a local merge consumes the
+  `COMMIT_APPROVED` marker; on the PR path there is no local protected-branch commit
+  so it isn't consumed. Documented that `close` clears any unconsumed marker (it
+  already did) so a stray future local commit can't be authorized.
+
 ### Added (human-in-the-loop interactivity)
 - The loop now pulls the user in at the plan/execute/judge stages via
   `AskUserQuestion`, brokered by the orchestrator (the Planner/Executor/Judge are

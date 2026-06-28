@@ -5,52 +5,45 @@ tags: [meta, hot-cache]
 ---
 # Hot Cache — where did we leave off?
 
-> Read this first. It is a ~500-word cache of current state, **overwritten each
-> session**, not a journal. For the full map see [[MOC]].
+> Read this first. ~500-word cache of current state, **overwritten each session**.
+> Full map: [[MOC]].
 
 ## Last updated
-**2026-06-28** — Built the Obsidian vault (this) over the JJE knowledge graph,
-right after a three-pass juror eval.
+**2026-06-28** — The [[jje-loop|loop ran end-to-end for real]] for the first time;
+fixed the 4 papercuts it surfaced.
 
 ## Key recent facts
-- **JJE** is a generator–critic review harness for Claude Code (Planner →
-  Executor → Jury → Judge), public at `github.com/KranzL/jje`. See [[jje-loop]].
-- Roster is **38 jurors / 11 lanes / 14 presets**. The 20 newest are
-  principal-level data lanes ([[principal-data-jurors]]).
-- **The single biggest lever is tool-backing**, now proven empirically, not just
-  argued — see [[tool-backing]] and [[scorecard]].
-- **Eval ran three passes** ([[floor-eval]], [[adversarial-eval]],
-  [[scale-eval]]): floor 38/38, adversarial 38/38, **scale 35/38 recall + 17
-  false alarms**. The scale pass is the only one that could fail, and did.
-- **The 3 scale misses are all un-tool-backed subtle-diff lanes**:
-  [[interface-compat]] (type narrowing), [[data-contract]] (decimal scale cut),
-  [[terraform]] (missed the IAM defect *only because checkov/trivy were absent*).
-- False alarms cluster in the reasoning lanes; the tool-backed lanes were clean
-  on both axes.
-- Safety hooks are **conditional** (load only in a trusted, non-bypass session) —
-  see [[safety-model]]. The unconditional guarantees come from the CLI + scratch
-  branch.
-- The lakehouse conventions are **private**, linked out, never copied here —
-  see [[lakehouse]] and [[conventions-overlay]].
+- **JJE** = a generator–critic review harness for Claude Code, public at
+  `github.com/KranzL/jje`. Roster **38 jurors / 11 lanes / 14 presets**.
+- **THE LOOP HAS NOW LOOPED.** A real `/jje` run on a private test repo went all
+  the way to a shipped PR — Planner + brokered questions, jury, Judge **ACCEPT**,
+  a **user REVISE-override** of the Judge, iter-2 ACCEPT, CI gate, PR delivery,
+  clean close. This closes the audit's biggest gap (it had only ever run once,
+  trivially).
+- The run surfaced 4 papercuts, all in **prompts/skill, not the state machine**
+  (the CLI core held up) — now fixed (commit e1b9a04): the zsh-breaking `S=` helper
+  → a shell function; Planner/Executor `git check-ignore` scope files; the Judge no
+  longer offers a phantom "fast follow-up" (ACCEPT is terminal); marker-on-PR-path
+  documented.
+- Biggest lever remains [[tool-backing]] (proven by [[scale-eval]]); the 3 scale
+  missers are now tool-backed.
+- Safety hooks are **conditional** (trusted + non-bypass) — see [[safety-model]].
+- A private test repo is staged with the **fixed** harness + the full
+  [[#Active threads|12-scenario gauntlet]] (`JJE-GAUNTLET.md`).
 
 ## Recent changes
-- Created: this whole `vault/` (juror/lane/preset/research/eval/concept notes).
-- Added earlier this session: orchestrator-brokered **interactivity** (Planner/
-  Executor/Judge return questions, orchestrator asks via AskUserQuestion;
-  `interactivity.level` default `high`).
-- Added: the eval corpus (`examples/eval/`) — floor + adversarial + scale.
+- Fixed the 4 first-run papercuts; re-synced the test repo's harness with the fix.
+- Wired the [[hot|Hot Cache]] into the loop (SessionStart hook + /jje close-out).
+- Built the assumptions/token audit + the [[scale-eval|3-pass eval]].
 
 ## Active threads
-Audit (2026-06-28) reframed the priorities — biggest gaps, highest leverage first:
-1. **Diff-router (Haiku triage)** — seat only the lanes the diff touches. Fixes
-   *both* cost (don't spawn 38 of [[tool-backing|the jurors]] when 3 apply) and the
-   "coverage = seating, done by hand" assumption. Top recommendation.
-2. **Prompt caching** the shared prefix (contract + diff) across jurors — ~90% off
-   the replicated input. Cheapest big win.
-3. **Coverage check + Judge evidence spot-read** — the Judge is blind (ACCEPT =
-   "no seated juror objected", not "correct"). See [[jje-loop]].
-4. **Skipped-core = escalate, systemically** (done for 3 lanes via [[tool-backing]]).
-5. **Prove the loop loops** — one real multi-iteration run (REVISE/REPLAN/ESCALATE)
-   on a large PR; the loop has only ever run once, trivially. See [[scale-eval]].
-6. Model right-sizing (31/38 on Sonnet vs config's haiku default); caveman ONLY on
-   Judge/Planner/Executor prose, never jurors.
+Highest leverage first (audit-ranked):
+1. **Run the rest of the gauntlet** (`JJE-GAUNTLET.md`, fixed harness): jury-forced
+   REVISE / both ESCALATEs / REPLAN / terraform-scanner-required / coverage-blind.
+2. **Diff-router (Haiku triage)** — seat only the lanes the diff touches: cost +
+   the "coverage = seating by hand" gap. Top build.
+3. **Prompt caching** the shared juror prefix — ~90% off the replicated input.
+4. **Coverage check + Judge evidence spot-read** — ACCEPT = "no seated juror
+   objected", not "correct". See [[jje-loop]].
+5. Model right-sizing (31/38 on Sonnet vs the haiku default); skipped-core →
+   escalate systemically; caveman ONLY on Judge/Planner/Executor prose.
