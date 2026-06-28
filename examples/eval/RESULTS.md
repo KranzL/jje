@@ -61,3 +61,45 @@ So treat these numbers as a **wiring/smoke floor**, not a quality ceiling. To me
 - **Multi-defect fixtures**: several issues at once, to test triage/ranking.
 - Graded the same way (`tests/run-eval.sh`), tracking per-lane recall/precision over time.
 
+
+---
+
+# Adversarial scorecard (second pass)
+
+Fixtures authored **blind to the review skills** (no teaching to the test): a
+**disguised** real defect per lane (designed to evade pattern-matching) plus a
+**decoy** — clean code engineered to look guilty and bait a false positive.
+Recall graded by a semantic judge ("did the juror catch THIS defect?");
+precision graded by silence on the decoy.
+
+**Adversarial recall 38/38** (caught the disguised defect) ·
+**Adversarial precision 38/38** (stayed quiet on the decoy).
+
+## What two clean sweeps actually tell us
+
+The decoy result is the credible one and the real signal: 38/38 jurors stayed
+silent on code built to bait them (an allowlisted column interpolation that
+*looks* like injection; a dependency-inversion that *looks* like a layering
+violation; a `round(x,2)` that *looks* like a lossy scale cut but is a display-
+only additive column). A juror that merely pattern-matched its anti-patterns
+would have false-alarmed here. They did not. **The jurors reason; they do not
+grep.** That is strong, hard-to-fake evidence the roster is well-constructed and
+calibrated (not trigger-happy) — more than the floor eval proved.
+
+## The caveats (why this is still not the ceiling)
+
+- **Small, single-defect fixtures.** Each is ~20-40 lines with the defect as the
+  main content. Real PRs are large, multi-file, with the defect buried among
+  unrelated changes. We test "here is a needle" — not "find the needle in a
+  1000-line haystack." This is the biggest remaining inflator.
+- **Judge anchoring on recall.** The semantic judge is *told* the planted defect,
+  which primes it to find a match. So the recall number is the softer of the two;
+  the **decoy/precision number (no judge) is the trustworthy one.**
+
+## The real remaining frontier: scale
+
+The eval that would finally produce failures (and the research predicts it will):
+**large, multi-file diffs with a disguised defect buried among distractor
+changes**, graded the same way. That tests whether the juror can *locate* the
+defect under realistic noise, not just judge an isolated snippet. That is the
+pass worth running next.

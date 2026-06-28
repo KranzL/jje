@@ -1,0 +1,615 @@
+{
+  "recall": [
+    {
+      "id": "correctness-adv-recall",
+      "juror": "correctness-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "Reviewer's manual:boundary-age-equals-horizon finding explicitly identifies the exact plan"
+    },
+    {
+      "id": "security-adv-recall",
+      "juror": "security-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding 'manual:sql-injection-identifier' directly identifies the "
+    },
+    {
+      "id": "structure-adv-recall",
+      "juror": "structure-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's finding explicitly identifies the deferred in-method import of `resolve_reg"
+    },
+    {
+      "id": "observability-adv-recall",
+      "juror": "observability-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding on obs:error-path-instrumentation perfectly identifies the"
+    },
+    {
+      "id": "interface-compat-adv-recall",
+      "juror": "interface-compat-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding on 'manual:public-type-narrowing' directly identifies the "
+    },
+    {
+      "id": "data-contract-adv-recall",
+      "juror": "data-contract-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer identified the exact planted defect: gross_unit_price_usd is published at dec"
+    },
+    {
+      "id": "idempotency-adv-recall",
+      "juror": "idempotency-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding explicitly identifies the planted defect: dedup_key includ"
+    },
+    {
+      "id": "cost-adv-recall",
+      "juror": "cost-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer identified the exact planted defect: a CAST function wrapping the partition c"
+    },
+    {
+      "id": "data-quality-adv-recall",
+      "juror": "data-quality-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding identifies the exact planted defect: fct_orders declares o"
+    },
+    {
+      "id": "governance-adv-recall",
+      "juror": "governance-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's finding directly identifies ext_ref as unmasked, untagged PII derived from "
+    },
+    {
+      "id": "go-concurrency-adv-recall",
+      "juror": "go-concurrency-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's finding directly identifies the planted defect: a data race on c.hits where"
+    },
+    {
+      "id": "go-error-handling-adv-recall",
+      "juror": "go-error-handling-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's finding exactly identifies the planted defect: wrapping ErrLeaseExpired wit"
+    },
+    {
+      "id": "go-performance-adv-recall",
+      "juror": "go-performance-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: regexp.MustCompile"
+    },
+    {
+      "id": "table-format-adv-recall",
+      "juror": "table-format-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding on table-format:delta-type-widening-decimal precisely iden"
+    },
+    {
+      "id": "partitioning-layout-adv-recall",
+      "juror": "partitioning-layout-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: partition column e"
+    },
+    {
+      "id": "storage-format-adv-recall",
+      "juror": "storage-format-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding correctly identifies the planted defect: the MM/dd/yyyy st"
+    },
+    {
+      "id": "terraform-adv-recall",
+      "juror": "terraform-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer identified the specific planted defect: ops_agent SG allowing SSH (22) from 0"
+    },
+    {
+      "id": "deployment-adv-recall",
+      "juror": "deployment-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly and accurately identifies the planted defect: pro"
+    },
+    {
+      "id": "dimensional-modeling-adv-recall",
+      "juror": "dimensional-modeling-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: order-header-level"
+    },
+    {
+      "id": "slowly-changing-dimensions-adv-recall",
+      "juror": "slowly-changing-dimensions-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: a BETWEEN join usi"
+    },
+    {
+      "id": "normalization-relational-adv-recall",
+      "juror": "normalization-relational-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding with check type 'grep:surrogate-without-unique-nk' directl"
+    },
+    {
+      "id": "semantic-layer-metrics-adv-recall",
+      "juror": "semantic-layer-metrics-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: order_freight_char"
+    },
+    {
+      "id": "data-leakage-adv-recall",
+      "juror": "data-leakage-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer identified the planted defect with high precision: segment_default_rate compu"
+    },
+    {
+      "id": "feature-engineering-adv-recall",
+      "juror": "feature-engineering-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer caught the planted defect. The blocking finding correctly identifies that lin"
+    },
+    {
+      "id": "model-evaluation-adv-recall",
+      "juror": "model-evaluation-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding correctly identifies the planted defect in evaluate_propen"
+    },
+    {
+      "id": "ml-reproducibility-adv-recall",
+      "juror": "ml-reproducibility-juror",
+      "kind": "adv-recall",
+      "blocking": 3,
+      "pass": true,
+      "why": "All three components of the planted defect are identified: (1) repro-gpu-determinism findi"
+    },
+    {
+      "id": "model-serving-mlops-adv-recall",
+      "juror": "model-serving-mlops-juror",
+      "kind": "adv-recall",
+      "blocking": 2,
+      "pass": true,
+      "why": "The reviewer's first blocking finding (check: manual:train-serve-skew-missing-value-handli"
+    },
+    {
+      "id": "model-monitoring-drift-adv-recall",
+      "juror": "model-monitoring-drift-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer caught the planted defect. The finding precisely identifies the 30-day label "
+    },
+    {
+      "id": "statistical-rigor-adv-recall",
+      "juror": "statistical-rigor-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: running 7 per-regi"
+    },
+    {
+      "id": "experimentation-abtest-adv-recall",
+      "juror": "experimentation-abtest-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding correctly identifies the unit-of-analysis mismatch: random"
+    },
+    {
+      "id": "causal-inference-adv-recall",
+      "juror": "causal-inference-juror",
+      "kind": "adv-recall",
+      "blocking": 2,
+      "pass": true,
+      "why": "The reviewer's two blocking findings directly identify the planted defect: adoption_index "
+    },
+    {
+      "id": "notebook-productionization-adv-recall",
+      "juror": "notebook-productionization-juror",
+      "kind": "adv-recall",
+      "blocking": 2,
+      "pass": true,
+      "why": "The reviewer's first blocking finding (check: jq:execution_count-out-of-order) explicitly "
+    },
+    {
+      "id": "streaming-eventtime-adv-recall",
+      "juror": "streaming-eventtime-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding on stream-event-vs-processing-time explicitly identifies t"
+    },
+    {
+      "id": "orchestration-dag-adv-recall",
+      "juror": "orchestration-dag-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer identified the exact planted defect with blocking finding dag-determinism-mar"
+    },
+    {
+      "id": "query-performance-sql-adv-recall",
+      "juror": "query-performance-sql-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding directly identifies the planted defect: AT TIME ZONE wrapp"
+    },
+    {
+      "id": "distributed-compute-spark-adv-recall",
+      "juror": "distributed-compute-spark-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer caught the specific planted defect. The blocking finding identifies broadcast"
+    },
+    {
+      "id": "algorithmic-complexity-adv-recall",
+      "juror": "algorithmic-complexity-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding 'algo:nested-loop-membership' directly catches the planted"
+    },
+    {
+      "id": "data-structure-selection-adv-recall",
+      "juror": "data-structure-selection-juror",
+      "kind": "adv-recall",
+      "blocking": 1,
+      "pass": true,
+      "why": "The reviewer's blocking finding on check 'dsfit-bloom-unsafe-direction' explicitly identif"
+    }
+  ],
+  "decoy_completed": [
+    {
+      "id": "correctness-decoy",
+      "juror": "correctness-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "security-decoy",
+      "juror": "security-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "structure-decoy",
+      "juror": "structure-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "observability-decoy",
+      "juror": "observability-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "interface-compat-decoy",
+      "juror": "interface-compat-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "data-contract-decoy",
+      "juror": "data-contract-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "idempotency-decoy",
+      "juror": "idempotency-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "cost-decoy",
+      "juror": "cost-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "data-quality-decoy",
+      "juror": "data-quality-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "governance-decoy",
+      "juror": "governance-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "go-concurrency-decoy",
+      "juror": "go-concurrency-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "go-error-handling-decoy",
+      "juror": "go-error-handling-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "go-performance-decoy",
+      "juror": "go-performance-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "table-format-decoy",
+      "juror": "table-format-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "partitioning-layout-decoy",
+      "juror": "partitioning-layout-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "storage-format-decoy",
+      "juror": "storage-format-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "terraform-decoy",
+      "juror": "terraform-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "deployment-decoy",
+      "juror": "deployment-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "dimensional-modeling-decoy",
+      "juror": "dimensional-modeling-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "slowly-changing-dimensions-decoy",
+      "juror": "slowly-changing-dimensions-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "normalization-relational-decoy",
+      "juror": "normalization-relational-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "semantic-layer-metrics-decoy",
+      "juror": "semantic-layer-metrics-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "data-leakage-decoy",
+      "juror": "data-leakage-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "feature-engineering-decoy",
+      "juror": "feature-engineering-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "model-evaluation-decoy",
+      "juror": "model-evaluation-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "ml-reproducibility-decoy",
+      "juror": "ml-reproducibility-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "model-serving-mlops-decoy",
+      "juror": "model-serving-mlops-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "model-monitoring-drift-decoy",
+      "juror": "model-monitoring-drift-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "statistical-rigor-decoy",
+      "juror": "statistical-rigor-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "experimentation-abtest-decoy",
+      "juror": "experimentation-abtest-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "causal-inference-decoy",
+      "juror": "causal-inference-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "notebook-productionization-decoy",
+      "juror": "notebook-productionization-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "streaming-eventtime-decoy",
+      "juror": "streaming-eventtime-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "orchestration-dag-decoy",
+      "juror": "orchestration-dag-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "query-performance-sql-decoy",
+      "juror": "query-performance-sql-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "distributed-compute-spark-decoy",
+      "juror": "distributed-compute-spark-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "algorithmic-complexity-decoy",
+      "juror": "algorithmic-complexity-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    },
+    {
+      "id": "data-structure-selection-decoy",
+      "juror": "data-structure-selection-juror",
+      "kind": "decoy",
+      "blocking": 0,
+      "pass": true,
+      "top": ""
+    }
+  ],
+  "decoy_blocked": []
+}
