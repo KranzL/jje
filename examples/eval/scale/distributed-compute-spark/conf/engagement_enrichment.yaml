@@ -1,0 +1,30 @@
+job:
+  output_table: analytics.fct_engagement_enriched
+  output_partitions: 200
+  shuffle_partitions: 400
+
+sources:
+  events: raw.clickstream_events
+  campaign_dim: marketing.campaign_dim
+  country_lookup: reference.country_lookup
+  currency_rates: reference.fx_daily_rates
+  device_dim: identity.device_dim
+
+source_notes:
+  events:
+    grain: one row per clickstream event
+    volume: ~3-4B rows/day, partitioned by event_date
+  country_lookup:
+    grain: one row per ISO country code
+    volume: ~250 rows, hand-maintained seed, effectively static
+  currency_rates:
+    grain: one row per currency per rate_date
+    volume: ~160 rows/day after partition filter
+  device_dim:
+    grain: one row per device_id
+    volume: ~600M rows, high cardinality
+  campaign_dim:
+    grain: one row per campaign_id
+    volume: ~85k rows today, append-only with full attribution history
+      retained indefinitely; projected to cross 5M rows within ~18 months
+      as self-serve campaign creation rolls out to all advertisers

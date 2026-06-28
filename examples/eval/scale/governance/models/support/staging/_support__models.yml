@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_support__tickets
+    description: One row per support ticket, deleted tickets excluded.
+    config:
+      post-hook: "{{ apply_masking_policies() }}"
+    columns:
+      - name: ticket_id
+        description: Natural key from Zendesk.
+        tests:
+          - not_null
+          - unique
+      - name: external_ticket_ref
+        description: >
+          Opaque reference Zendesk carries from the upstream channel (e.g. the
+          email message-id hash or chat session id). Not customer-identifying.
+        tests:
+          - not_null
+      - name: agent_identifier
+        description: Internal Zendesk user id of the assigned agent.
+      - name: contact_channel
+        description: Channel the ticket arrived on (email, chat, web, api).
+        tests:
+          - accepted_values:
+              values: ['email', 'chat', 'web', 'api', 'phone']
+      - name: ticket_status
+        tests:
+          - not_null
+
+  - name: stg_support__ticket_contacts
+    description: >
+      One row per contact attached to a ticket (requester plus any cc'd people).
+    config:
+      post-hook: "{{ apply_masking_policies() }}"
+    columns:
+      - name: contact_id
+        tests:
+          - not_null
+          - unique
+      - name: ticket_id
+        tests:
+          - not_null
+      - name: requester_email
+        description: Email address of the contact.
+        meta:
+          pii: true
+          masking_policy: mask_email
+        tests:
+          - not_null
+      - name: requester_phone
+        description: Phone number of the contact, E.164 where available.
+        meta:
+          pii: true
+          masking_policy: mask_phone
+      - name: ext_ref
+        description: Secondary reference value carried over from the source row.
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country of the contact.
+      - name: contact_role
+        tests:
+          - accepted_values:
+              values: ['requester', 'cc']

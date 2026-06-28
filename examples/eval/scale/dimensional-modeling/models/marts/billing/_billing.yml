@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: fct_invoice_lines
+    description: >
+      Invoice line fact at one row per invoice_line_id. Each line carries its own
+      quantity, unit price, extended amount and tax, plus descriptive invoice
+      header context (status, currency, billing period) and the crediting plan
+      version. Header-level invoice discount is allocated down to line grain in
+      proportion to each line's share of the invoice subtotal so that line-level
+      net amounts reconcile to the invoice. Feeds agg_billing_daily and the
+      revenue-recognition extract.
+    columns:
+      - name: invoice_line_key
+        description: Surrogate key for the invoice line fact.
+        tests:
+          - unique
+          - not_null
+      - name: invoice_line_id
+        description: Natural key from the billing system.
+        tests:
+          - not_null
+      - name: invoice_id
+        description: Degenerate dimension; parent invoice the line belongs to.
+        tests:
+          - not_null
+      - name: plan_version_key
+        description: SCD2 plan version in effect for the line.
+        tests:
+          - relationships:
+              to: ref('dim_subscription_plan')
+              field: plan_version_key
+      - name: line_amount
+        description: Extended amount for the line (quantity * unit_price), additive.
+        tests:
+          - not_null
+      - name: allocated_invoice_discount
+        description: >
+          Header invoice discount pushed to line grain by the line's share of the
+          invoice subtotal. Sums back to the invoice-level discount.
+      - name: unit_price
+        description: Per-unit list price for the line; non-additive rate, detail only.
+
+  - name: agg_billing_daily
+    description: >
+      Daily billing rollup at one row per invoice_date and currency_code. Powers
+      the finance billing dashboard headline numbers.
+    columns:
+      - name: invoice_date
+        tests:
+          - not_null
+      - name: currency_code
+        tests:
+          - not_null
+      - name: billed_subtotal
+        description: Sum of line extended amounts billed on the day.
+        tests:
+          - not_null
+      - name: billed_total
+        description: Total billed on the day across all invoices.
+        tests:
+          - not_null
+
+  - name: dim_subscription_plan
+    description: >
+      SCD2 plan dimension. One row per plan version with valid_from/valid_to
+      effective range and an is_current flag for the latest version.
+    columns:
+      - name: plan_version_key
+        tests:
+          - unique
+          - not_null
+      - name: plan_id
+        tests:
+          - not_null

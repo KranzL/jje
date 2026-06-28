@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: zendesk
+    database: raw
+    schema: zendesk
+    description: Landed support-desk tables from the Zendesk Fivetran connector.
+    tables:
+      - name: tickets
+        description: One row per support ticket, full snapshot per sync.
+        columns:
+          - name: id
+            tests:
+              - not_null
+              - unique
+      - name: ticket_contacts
+        description: >
+          Contact records attached to a ticket. The requester is the person who
+          opened the ticket; cc rows capture additional people copied on it.
+        columns:
+          - name: id
+            tests:
+              - not_null
+              - unique
+      - name: ticket_events
+        description: Append-only audit log of ticket state transitions.
+        columns:
+          - name: id
+            tests:
+              - not_null
+              - unique

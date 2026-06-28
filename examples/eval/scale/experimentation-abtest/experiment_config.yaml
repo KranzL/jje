@@ -1,0 +1,32 @@
+experiment_key: checkout_cta_color_2026q2
+hypothesis: A higher-contrast primary CTA increases checkout starts per active user.
+randomization_unit: user_id
+assignment_salt: checkout_cta_color_2026q2_v3
+variants:
+  - name: control
+    weight: 0.5
+  - name: treatment
+    weight: 0.5
+primary_metric:
+  name: checkout_starts_per_user
+  grain: user
+  kind: ratio
+secondary_metrics:
+  - name: add_to_cart_rate
+    grain: user
+    kind: proportion
+  - name: revenue_per_session
+    grain: session
+    kind: ratio
+guardrail_metrics:
+  - name: page_load_p95_ms
+    grain: session
+    kind: continuous
+analysis:
+  alpha: 0.05
+  power: 0.8
+  mde_relative: 0.02
+  cuped_covariate: pre_period_checkout_starts_per_user
+  looks:
+    schedule: [7, 14, 21, 28]
+    spending_function: obrien_fleming

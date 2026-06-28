@@ -1,0 +1,19 @@
+job:
+  name: weekly_churn_scoring
+  owner: data-science@example.com
+  schedule: "0 6 * * 1"
+  retries: 1
+
+parameters:
+  scoring_date: null
+  lookback_days: 90
+  model_uri: "models:/churn_propensity/Production"
+  reference_table: "analytics.dim_account_segment"
+  min_active_days: 14
+  output_dir: "/mnt/warehouse/exports/churn"
+  output_format: "parquet"
+
+runtime:
+  kernel: python3
+  papermill_timeout_seconds: 1800
+  log_output: true

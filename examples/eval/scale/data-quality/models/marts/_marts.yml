@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: fct_order_revenue
+    description: >
+      Order revenue fact at one row per order. Enriches each order with its
+      rolled-up line-item counts, current sales region, and the crediting sales
+      rep. Feeds agg_daily_revenue and the finance revenue dashboard, where
+      net_revenue is summed by day and currency.
+    columns:
+      - name: order_revenue_key
+        description: Surrogate key for the order revenue fact.
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Natural key from the order system.
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: customer_id
+      - name: net_revenue
+        description: Order grand total net of order-level discounts.
+        tests:
+          - not_null
+      - name: sales_rep_id
+        description: Crediting sales rep for the order.
+      - name: region_name
+        description: Current region name for the order.
+
+  - name: agg_daily_revenue
+    description: >
+      Daily revenue rollup at one row per order_date and currency_code. Powers
+      the finance revenue dashboard headline numbers.
+    columns:
+      - name: order_date
+        tests:
+          - not_null
+      - name: net_revenue
+        description: Sum of order net revenue recognized on the day.
+        tests:
+          - not_null

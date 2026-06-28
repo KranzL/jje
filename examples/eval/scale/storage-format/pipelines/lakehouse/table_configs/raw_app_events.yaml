@@ -1,0 +1,31 @@
+name: raw_app_events
+path: s3://acme-lake/raw/app_events
+file_format: parquet
+write_mode: append
+target_file_mb: 128
+
+partition_by:
+  - ingest_date
+
+compression: snappy
+
+options:
+  parquet.enable.dictionary: "true"
+
+columns:
+  - name: raw_event_id
+    type: string
+    nullable: false
+  - name: raw_account_id
+    type: string
+  - name: raw_event_type
+    type: string
+  - name: raw_event_time
+    type: string
+  - name: raw_attributes_json
+    type: string
+  - name: source_topic
+    type: string
+  - name: ingest_date
+    type: date
+    nullable: false

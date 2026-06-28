@@ -1,0 +1,79 @@
+version: 2
+
+sources:
+  - name: commerce
+    database: raw
+    schema: commerce
+    tables:
+      - name: orders
+        description: >
+          Order header table. Clustered by order_id (NUMBER); micro-partition
+          pruning on downstream joins depends on order_id being matched on its
+          native numeric type.
+        columns:
+          - name: order_id
+            description: Surrogate order key, NUMBER, clustering key.
+            tests:
+              - not_null
+              - unique
+          - name: customer_id
+      - name: customers
+        columns:
+          - name: customer_id
+            tests:
+              - not_null
+              - unique
+
+  - name: logistics
+    database: raw
+    schema: logistics
+    tables:
+      - name: shipments
+        description: >
+          Carrier shipment records. order_reference holds the originating
+          order id as a VARCHAR for historical reasons.
+        columns:
+          - name: shipment_id
+            tests:
+              - not_null
+              - unique
+          - name: order_reference
+            description: Originating order id, stored as VARCHAR.
+      - name: carrier_scans
+        columns:
+          - name: scan_id
+            tests:
+              - not_null
+              - unique
+
+models:
+  - name: int_order_shipments
+    description: Orders joined to their shipment and latest carrier scan, 180 day window.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: shipment_id
+
+  - name: fct_order_fulfillment
+    description: Order grain fulfillment fact with ship and delivery SLA flags.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: ship_sla_status
+        tests:
+          - accepted_values:
+              values: ['unshipped', 'on_time', 'late']
+      - name: same_day_delivered
+        tests:
+          - not_null
+
+  - name: dim_customers
+    description: Customer dimension, clustered by customer_id.
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique

@@ -1,0 +1,69 @@
+metrics:
+  - name: billed_revenue
+    description: Gross billed revenue across invoice lines.
+    type: simple
+    label: Billed Revenue
+    type_params:
+      measure: gross_line_amount
+
+  - name: net_billed_revenue
+    description: Billed revenue net of discounts and inclusive of tax.
+    type: simple
+    label: Net Billed Revenue
+    type_params:
+      measure: net_line_amount
+
+  - name: discount_given
+    description: Total discount applied across invoice lines.
+    type: simple
+    label: Discount Given
+    type_params:
+      measure: line_discount_amount
+
+  - name: effective_discount_rate
+    description: Share of gross billed revenue given back as discount.
+    type: ratio
+    label: Effective Discount Rate
+    type_params:
+      numerator: line_discount_amount
+      denominator: gross_line_amount
+
+  - name: revenue_per_billed_subscription
+    description: Net billed revenue per distinct subscription that was billed.
+    type: ratio
+    label: Revenue per Billed Subscription
+    type_params:
+      numerator: net_line_amount
+      denominator: billed_subscriptions
+
+  - name: monthly_recurring_revenue
+    description: Monthly recurring revenue rolled up from billed subscriptions.
+    type: simple
+    label: MRR
+    type_params:
+      measure: subscription_mrr
+
+  - name: monthly_recurring_revenue_pit
+    description: Point-in-time monthly recurring revenue from the daily snapshot.
+    type: simple
+    label: MRR (point in time)
+    type_params:
+      measure: total_mrr
+
+  - name: net_revenue_retention
+    description: >
+      Net revenue retention as the ratio of point-in-time MRR to the seat-weighted
+      committed base.
+    type: ratio
+    label: Net Revenue Retention
+    type_params:
+      numerator: total_mrr
+      denominator: total_arr
+
+  - name: revenue_per_active_subscription
+    description: Point-in-time MRR per active subscription.
+    type: ratio
+    label: Revenue per Active Subscription
+    type_params:
+      numerator: total_mrr
+      denominator: active_subscriptions

@@ -1,0 +1,25 @@
+name: dim_merchant
+path: s3://acme-lake/curated/dim_merchant
+file_format: json
+write_mode: overwrite
+target_file_mb: 64
+
+compression: none
+
+options:
+  ignoreNullFields: "false"
+
+columns:
+  - name: merchant_id
+    type: bigint
+    nullable: false
+  - name: merchant_name
+    type: string
+  - name: category
+    type: string
+  - name: country_code
+    type: string
+  - name: is_active
+    type: boolean
+  - name: onboarded_on
+    type: date

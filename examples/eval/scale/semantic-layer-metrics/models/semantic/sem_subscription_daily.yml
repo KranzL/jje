@@ -1,0 +1,57 @@
+semantic_models:
+  - name: subscription_daily
+    description: >
+      Daily subscription snapshot. One row per active subscription per calendar
+      day. MRR and seat counts are point-in-time balances, so they are exposed
+      as semi-additive measures keyed on the snapshot date.
+    model: ref('fct_subscription_daily')
+    defaults:
+      agg_time_dimension: snapshot_date
+
+    entities:
+      - name: subscription_day
+        type: primary
+        expr: subscription_day_key
+      - name: subscription
+        type: foreign
+        expr: subscription_id
+      - name: account
+        type: foreign
+        expr: account_id
+
+    dimensions:
+      - name: snapshot_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: status
+        type: categorical
+      - name: plan_id
+        type: categorical
+
+    measures:
+      - name: total_mrr
+        description: Point-in-time monthly recurring revenue.
+        agg: sum
+        expr: mrr_amount
+        non_additive_dimension:
+          name: snapshot_date
+          window_choice: max
+      - name: total_arr
+        description: Point-in-time annual recurring revenue.
+        agg: sum
+        expr: arr_amount
+        non_additive_dimension:
+          name: snapshot_date
+          window_choice: max
+      - name: total_seats
+        description: Point-in-time seat count across active subscriptions.
+        agg: sum
+        expr: seat_count
+        non_additive_dimension:
+          name: snapshot_date
+          window_choice: max
+      - name: active_subscriptions
+        description: Distinct active subscriptions on the snapshot date.
+        agg: count_distinct
+        expr: subscription_id

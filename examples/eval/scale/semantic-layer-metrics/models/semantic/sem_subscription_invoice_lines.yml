@@ -1,0 +1,65 @@
+semantic_models:
+  - name: subscription_invoice_lines
+    description: >
+      Invoice-line grain semantic model. One row per billed invoice line,
+      enriched with the owning subscription's account, plan, and status so that
+      billing revenue can be sliced by subscription attributes.
+    model: ref('fct_subscription_invoice_lines')
+    defaults:
+      agg_time_dimension: invoiced_on
+
+    entities:
+      - name: invoice_line
+        type: primary
+        expr: invoice_line_key
+      - name: subscription
+        type: foreign
+        expr: subscription_id
+      - name: account
+        type: foreign
+        expr: account_id
+      - name: invoice
+        type: foreign
+        expr: invoice_id
+
+    dimensions:
+      - name: invoiced_on
+        type: time
+        type_params:
+          time_granularity: day
+      - name: subscription_status
+        type: categorical
+      - name: plan_id
+        type: categorical
+      - name: subscription_seats
+        type: categorical
+
+    measures:
+      - name: gross_line_amount
+        description: Billed amount on the invoice line before tax and discount.
+        agg: sum
+        expr: line_amount
+      - name: line_tax_amount
+        description: Tax charged on the invoice line.
+        agg: sum
+        expr: tax_amount
+      - name: line_discount_amount
+        description: Discount applied to the invoice line.
+        agg: sum
+        expr: discount_amount
+      - name: net_line_amount
+        description: Line amount net of discount and inclusive of tax.
+        agg: sum
+        expr: net_line_amount
+      - name: subscription_mrr
+        description: Monthly recurring revenue for the subscription on the line.
+        agg: sum
+        expr: subscription_mrr
+      - name: billed_subscriptions
+        description: Distinct subscriptions that appear on a billed line.
+        agg: count_distinct
+        expr: subscription_id
+      - name: invoice_line_count
+        description: Count of billed invoice lines.
+        agg: count
+        expr: invoice_line_key

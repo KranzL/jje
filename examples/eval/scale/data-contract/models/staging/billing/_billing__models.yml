@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: stg_billing__invoice_lines
+    description: >
+      One row per invoice line straight from the billing system, lightly
+      cleaned. Monetary values are kept at full ledger precision here so that
+      downstream marts can decide their own rounding policy.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: invoice_line_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+          - type: primary_key
+      - name: invoice_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+      - name: product_id
+        data_type: bigint
+        constraints:
+          - type: not_null
+      - name: quantity
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: unit_amount
+        description: Per-unit price in the invoice's transaction currency, ledger precision.
+        data_type: numeric(18,4)
+        constraints:
+          - type: not_null
+      - name: discount_amount
+        description: Line-level discount in transaction currency.
+        data_type: numeric(18,2)
+      - name: transaction_currency_code
+        data_type: varchar(3)
+        constraints:
+          - type: not_null
+      - name: invoiced_at
+        data_type: timestamp
+        constraints:
+          - type: not_null
+
+  - name: stg_billing__fx_rates
+    description: One row per currency per day with the USD conversion rate.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: currency_code
+        data_type: varchar(3)
+        constraints:
+          - type: not_null
+      - name: rate_date
+        data_type: date
+        constraints:
+          - type: not_null
+      - name: rate_to_usd
+        description: Multiplicative rate converting one unit of currency to USD.
+        data_type: numeric(18,8)
+        constraints:
+          - type: not_null

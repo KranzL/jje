@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: fct_payment_events
+    description: >
+      One row per payment gateway event. Grain is payment_id + event_type.
+      Loaded incrementally from the gateway event stream.
+    columns:
+      - name: payment_event_sk
+        description: Surrogate key over payment_id and event_type.
+        tests:
+          - not_null
+      - name: payment_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_payment')
+              field: payment_id
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['authorized', 'captured', 'refunded', 'chargeback']
+      - name: amount_minor
+        tests:
+          - not_null
+
+  - name: fct_settlements
+    description: One row per settlement batch.
+    columns:
+      - name: settlement_id
+        tests:
+          - not_null
+          - unique
+      - name: net_minor
+        tests:
+          - not_null
+
+  - name: fct_payment_lifecycle
+    description: Aggregated lifecycle counts per payment and event type.
+    columns:
+      - name: payment_id
+        tests:
+          - not_null
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['authorized', 'captured', 'refunded', 'chargeback']
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - payment_id
+            - event_type

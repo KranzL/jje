@@ -1,0 +1,52 @@
+name: events_activity_fact
+path: s3://acme-lake/curated/events_activity_fact
+file_format: parquet
+write_mode: overwrite
+target_file_mb: 256
+
+partition_by:
+  - ingest_date
+
+sort_by:
+  - event_time
+  - account_id
+
+compression: zstd
+
+options:
+  parquet.block.size: "134217728"
+  parquet.page.size: "1048576"
+  parquet.enable.dictionary: "true"
+
+columns:
+  - name: event_id
+    type: string
+    nullable: false
+  - name: account_id
+    type: bigint
+    nullable: false
+  - name: device_id
+    type: bigint
+  - name: session_id
+    type: string
+  - name: event_type
+    type: string
+    nullable: false
+  - name: event_time
+    type: string
+    nullable: false
+  - name: surface
+    type: string
+  - name: country_code
+    type: string
+  - name: app_version
+    type: string
+  - name: duration_ms
+    type: bigint
+  - name: payload_bytes
+    type: bigint
+  - name: is_authenticated
+    type: boolean
+  - name: ingest_date
+    type: date
+    nullable: false

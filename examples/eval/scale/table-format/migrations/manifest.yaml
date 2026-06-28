@@ -1,0 +1,71 @@
+version: 3
+
+# Declarative migration manifest consumed by the lakehouse migration runner.
+# The runner validates each declared column transition against the live table
+# schema before applying the matching DDL file. from_type reflects the current
+# committed schema; to_type is the post-migration target.
+
+catalog: lake
+schema: payments
+
+migrations:
+  - id: 0006_refunds_widen_amounts
+    table: refund_events
+    file: ddl/payments/0006_refunds_widen_amounts.sql
+    column_changes:
+      - column: refund_amount
+        from_type: decimal(12,2)
+        to_type: decimal(18,2)
+        op: alter_type
+      - column: gateway_fee
+        from_type: decimal(12,2)
+        to_type: decimal(18,2)
+        op: alter_type
+      - column: settlement_batch_id
+        to_type: bigint
+        op: add_column
+      - column: settled_at
+        to_type: timestamp
+        op: add_column
+
+  - id: 0007_payment_events_evolve
+    table: payment_events
+    file: ddl/payments/0007_payment_events_evolve.sql
+    column_changes:
+      - column: amount_minor
+        from_type: int
+        to_type: bigint
+        op: alter_type
+      - column: psp_ref
+        to_column: psp_reference
+        op: rename_column
+      - column: captured_amount
+        from_type: decimal(12,2)
+        to_type: decimal(18,2)
+        op: alter_type
+      - column: fee_amount
+        from_type: decimal(18,2)
+        to_type: decimal(18,4)
+        op: alter_type
+      - column: settlement_batch_id
+        to_type: bigint
+        op: add_column
+      - column: settlement_currency
+        to_type: string
+        op: add_column
+      - column: settled_at
+        to_type: timestamp
+        op: add_column
+
+  - id: 0008_settlement_batches_create
+    table: settlement_batches
+    file: ddl/payments/0008_settlement_batches_create.sql
+    op: create_table
+
+  - id: 0009_payment_events_partition_evolve
+    table: payment_events
+    file: ddl/payments/0009_payment_events_partition_eval.sql
+    op: alter_partition_spec
+    partition_changes:
+      - add_field: bucket(32, settlement_batch_id)
+        name: settlement_bucket

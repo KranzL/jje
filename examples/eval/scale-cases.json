@@ -1,0 +1,846 @@
+{
+  "description": "Scale eval: realistic multi-file PRs with one buried disguised defect among legitimate distractors. Recall = juror locates the buried defect; noise = juror does NOT flag the distractor code.",
+  "cases": [
+    {
+      "id": "correctness-scale",
+      "base": "correctness",
+      "juror": "correctness-juror",
+      "fixture": "examples/eval/scale/correctness",
+      "planted_defect": "SlidingWindow.query uses bisect_right for the upper bound on a documented half-open [start, end) interval, so a sample at exactly end is wrongly included (should be bisect_left).",
+      "defect_location": "windowstats/windowstats/window.py, in SlidingWindow.query (~line 65: hi = bisect.bisect_right(self._ts, end))",
+      "expect_match": [
+        "half-open interval",
+        "exclusive end boundary",
+        "bisect_right vs bisect_left",
+        "off-by-one"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "query_inclusive correctly uses bisect_right for a closed interval (near-identical line)",
+        "RetentionPolicy cutoff with ts >= now-horizon and drop_before/bisect_left (correct boundary)",
+        "bucket_index floor mapping a boundary ts to the later bucket (correct)",
+        "BucketGrid.index_span using end - width*1e-9 and range(lo, hi+1) inclusive (correct)",
+        "_percentile nearest-rank int(round(q*(n-1))) and _median mid index (correct)"
+      ]
+    },
+    {
+      "id": "security-scale",
+      "base": "security",
+      "juror": "security-juror",
+      "fixture": "examples/eval/scale/security",
+      "planted_defect": "build_order_clause uses SORTABLE_COLUMNS.get(field, field), defaulting to raw user-supplied sort param, then f-string-interpolates it into the ORDER BY of a raw SQL query executed via cursor.execute -> SQL injection.",
+      "defect_location": "reporting/filters.py, build_order_clause (~line 49-50: column = SORTABLE_COLUMNS.get(field, field); f\"ORDER BY {column} {dir_token}\")",
+      "expect_match": [
+        "sql injection",
+        "order by",
+        "unvalidated sort column",
+        "raw query interpolation"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "build_filter_clause f-string uses column names but skips unknown keys and parameterizes values (safe)",
+        "ILIKE search clause uses %s placeholders despite scary % wildcard interpolation (safe)",
+        "LIMIT/OFFSET interpolated into SQL but int-coerced via _coerce_int (safe)",
+        "direction token strictly validated against asc/desc allowlist (partial validation that baits attention away from the sort field)",
+        "serializer validates direction as ChoiceField and filters against FILTERABLE_COLUMNS but leaves sort as free CharField"
+      ]
+    },
+    {
+      "id": "structure-scale",
+      "base": "structure",
+      "juror": "structure-juror",
+      "fixture": "examples/eval/scale/structure",
+      "planted_defect": "domain/pricing.py imports and calls the concrete shop.infrastructure.db.tax_repository.SqlTaxRepository, a domain-to-infra/db layering violation.",
+      "defect_location": "shop/domain/pricing.py: import at line ~9 (from shop.infrastructure.db.tax_repository import SqlTaxRepository), used in _resolve_rate fallback at line ~50",
+      "expect_match": [
+        "layering violation",
+        "domain imports infrastructure",
+        "dependency inversion",
+        "boundary violation"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "application/checkout.py legitimately imports infrastructure to compose the service (correct for app layer)",
+        "infrastructure/adapters.py TaxRateAdapter depends on domain Money and the SQL repo (correct dependency direction)",
+        "domain/repositories.py defines TaxRateProvider/PromotionProvider Protocols (correct DIP target)",
+        "PricingService constructor injects TaxRateProvider/PromotionProvider (correct injection that mirrors the bad direct import)"
+      ]
+    },
+    {
+      "id": "observability-scale",
+      "base": "observability",
+      "juror": "observability-juror",
+      "fixture": "examples/eval/scale/observability",
+      "planted_defect": "In dispatcher.py the per-channel fan-out wraps the external channel.send() call in a bare `except Exception: continue` that swallows delivery failures with no log line and no failure metric, while the success branch logs and increments the deliveries counter.",
+      "defect_location": "examples/eval/scale/observability/alerting/dispatcher.py, lines ~43-46 (the try/except around channel.send in AlertDispatcher.dispatch)",
+      "expect_match": [
+        "swallowed error",
+        "delivery failure unlogged",
+        "no failure metric",
+        "silent except continue"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "enrichment.py enrich loop also uses except+continue but logs a warning with exc_info and increments enrich_failures counter (legitimate)",
+        "channels.py _with_retry catches RequestException/ChannelError, logs each attempt, then re-raises (legitimate)",
+        "PagerDutyChannel returns 'skipped' and logs.debug for low-severity (legitimate skip, not a swallow)",
+        "dispatcher _route mute/min-severity branches return [] and log.info (legitimate no-op)",
+        "tests only cover happy-path fan-out so the failure path is untested (realistic blind spot, not itself the defect)"
+      ]
+    },
+    {
+      "id": "interface-compat-scale",
+      "base": "interface-compat",
+      "juror": "interface-compat-juror",
+      "fixture": "examples/eval/scale/interface-compat",
+      "planted_defect": "Public HeaderMap type narrowed from Record<string, string | string[]> to Record<string, string>, breaking callers that pass array-valued headers, shipped under a minor version bump.",
+      "defect_location": "src/types.ts line 1 (HeaderMap alias); surfaced via src/headers.ts and ClientOptions.defaultHeaders",
+      "expect_match": [
+        "narrowed parameter type",
+        "breaking change",
+        "no major version bump",
+        "header value array"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "DEFAULT_MAX_RETRIES default raised 3 to 5 (documented in CHANGELOG)",
+        "DEFAULT_BACKOFF.factor default changed 1.5 to 2 (documented)",
+        "new optional cap param added to computeBackoff (additive)",
+        "new optional onRetry callback on options (additive)",
+        "parseRetryAfter keeps string | null signature, looks narrowable but isn't"
+      ]
+    },
+    {
+      "id": "data-contract-scale",
+      "base": "data-contract",
+      "juror": "data-contract-juror",
+      "fixture": "examples/eval/scale/data-contract",
+      "planted_defect": "fct_invoice_lines.unit_amount is narrowed from the upstream staging contract numeric(18,4) to numeric(18,2), silently truncating the consumed per-unit price that feeds gross_amount and the daily revenue rollup.",
+      "defect_location": "models/marts/finance/_finance__models.yml unit_amount column (approx line 38-44), mirrored by the cast in models/marts/finance/fct_invoice_lines.sql joined CTE (approx line 19)",
+      "expect_match": [
+        "decimal scale reduction",
+        "precision loss",
+        "consumed downstream column",
+        "monetary truncation"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "discount_amount widened numeric(18,2) to numeric(18,4) - safe widening that resembles the defect",
+        "fx_rate / rate_to_usd declared numeric(18,8) high precision new column",
+        "not_null constraints added to primary-key invoice_line_id (safe tightening)",
+        "new required reporting_currency_code and transaction_currency_code columns (nullable->required look but new)",
+        "gross_amount_usd numeric(18,4) consistent across mart and daily rollup"
+      ]
+    },
+    {
+      "id": "idempotency-scale",
+      "base": "idempotency",
+      "juror": "idempotency-juror",
+      "fixture": "examples/eval/scale/idempotency",
+      "planted_defect": "fct_payment_events.sql is an incremental merge with unique_key='payment_id', but the model's grain is one row per (payment_id, event_type), so the merge match key is non-unique and re-runs duplicate / non-deterministically overwrite event rows.",
+      "defect_location": "/Users/lukekranz/Documents/GitHub/jje/examples/eval/scale/idempotency/models/marts/finance/fct_payment_events.sql, config block lines 1-10 (unique_key='payment_id') vs grain at lines 30-31 (surrogate over payment_id + event_type)",
+      "expect_match": [
+        "non-unique merge key",
+        "grain mismatch",
+        "duplicate rows on re-run",
+        "unique_key omits event_type"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "fct_settlements.sql single-column unique_key='settlement_id' that IS genuinely unique (baits a 'single-column key' false positive)",
+        "refresh_payment_rollup macro ON CONFLICT(event_date, currency_code) that correctly matches its GROUP BY grain",
+        "fct_payment_lifecycle correct composite unique_key=['payment_id','event_type'] plus a unique_combination test",
+        "incremental high-watermark filters using max(ingested_at) that look like they could miss/duplicate but are fine",
+        "schema.yml uniqueness test present on settlements/lifecycle but absent on fct_payment_events"
+      ]
+    },
+    {
+      "id": "cost-scale",
+      "base": "cost",
+      "juror": "cost-juror",
+      "fixture": "examples/eval/scale/cost",
+      "planted_defect": "int_endpoint_latency.sql filters the partitioned source with `where date(e.dt) between ...`, wrapping the dt partition key in date(), which defeats partition pruning and forces a full-table scan.",
+      "defect_location": "/Users/lukekranz/Documents/GitHub/jje/examples/eval/scale/cost/models/metering/int_endpoint_latency.sql line 31 (the `where date(e.dt) between b.window_start and b.window_end` predicate)",
+      "expect_match": [
+        "partition pruning",
+        "function on partition column",
+        "full table scan",
+        "scan cost"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "stg_api_request_events.sql does the same raw partition scan but correctly with bare `e.dt between` string bounds",
+        "legit date functions on the constant side of filters: `dt >= date_format(date_sub(current_date(),2),'yyyy-MM-dd')` in int and fct incremental predicates",
+        "cast(event_ts as timestamp) and date_trunc('hour', ...) applied to the non-partition event_ts column",
+        "to_date(usage_hour) and hour(usage_hour) used in SELECT projections, not in WHERE",
+        "bare `dt > (select max(dt) from this)` incremental guard in staging",
+        "dim_account_plan window function row_number latest-record selection"
+      ]
+    },
+    {
+      "id": "data-quality-scale",
+      "base": "data-quality",
+      "juror": "data-quality-juror",
+      "fixture": "examples/eval/scale/data-quality",
+      "planted_defect": "fct_order_revenue joins stg_rep_assignments directly on order_id without aggregating or weighting by credit_share, fanning out split-deal orders to multiple rows that each repeat the full net_revenue, so the downstream daily sum double-counts revenue while the unique test passes because the surrogate key includes sales_rep_id.",
+      "defect_location": "models/marts/fct_order_revenue.sql, the rep_assignments left join (~line 70) combined with the order_revenue_key surrogate key (~line 38) and carrying full net_revenue per row",
+      "expect_match": [
+        "join fan-out",
+        "double-count",
+        "order grain violation",
+        "rep assignment not aggregated"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "item_rollup CTE: real one-to-many order_items correctly pre-aggregated to order grain before joining",
+        "stg_regions: SCD2-style history table correctly filtered to is_current so the region join stays 1:1",
+        "agg_daily_revenue uses count(distinct order_id) so order_count is correct, masking the revenue inflation",
+        "credit_share column exists and is documented as summing to 1.0 but is never applied (bait that looks handled)",
+        "unique + not_null tests present on the surrogate key, suggesting grain is protected"
+      ]
+    },
+    {
+      "id": "governance-scale",
+      "base": "governance",
+      "juror": "governance-juror",
+      "fixture": "examples/eval/scale/governance",
+      "planted_defect": "ext_ref (sourced from backup_email, a real email address = PII) is published untagged and unmasked: it has no meta.pii flag in either _support__models.yml or _support_marts.yml, so apply_masking_policies() never attaches a masking policy to it.",
+      "defect_location": "models/support/staging/stg_support__ticket_contacts.sql line ~16 (`backup_email as ext_ref`) plus its untagged column entry in models/support/staging/_support__models.yml (~line 60) and models/support/marts/_support_marts.yml (~line 38); propagated through dim_requesters.sql.",
+      "expect_match": [
+        "untagged pii",
+        "unmasked email",
+        "missing masking policy",
+        "ext_ref backup_email"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "external_ticket_ref - genuinely a non-PII upstream channel reference (message-id hash/session id), correctly untagged",
+        "agent_identifier - internal Zendesk employee user id, low sensitivity, untagged",
+        "contact_channel - enum email/chat/web/api/phone, not PII",
+        "country_code - ISO country, not customer-identifying",
+        "requester_email and requester_phone - real PII that IS correctly tagged meta.pii + masking_policy (correct handling that resembles the gap)",
+        "fct_ticket_events meta.contains_pii: false - legitimately PII-free fact"
+      ]
+    },
+    {
+      "id": "go-concurrency-scale",
+      "base": "go-concurrency",
+      "juror": "go-concurrency-juror",
+      "fixture": "examples/eval/scale/go-concurrency",
+      "planted_defect": "Collector.recomputeRates ranges over the Registry's internal counters map without holding the Registry mutex, racing with Add's locked writes (concurrent map read/write).",
+      "defect_location": "metrics/collector.go lines 64-65 (recomputeRates: len(c.reg.counters) and for ... range c.reg.counters)",
+      "expect_match": [
+        "data race",
+        "unlocked map read",
+        "concurrent map read/write",
+        "missing mutex"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "worker.FanOut shared errs slice written by multiple goroutines (safe, disjoint indices)",
+        "Collector.rates guarded correctly by ratesMu; prev owned by single goroutine",
+        "MemorySink seen map and batches under s.mu",
+        "worker pool goroutines pass loop index as parameter (no capture bug)",
+        "Registry Snapshot/Get/Gauge/Uptime all correctly locked"
+      ]
+    },
+    {
+      "id": "go-error-handling-scale",
+      "base": "go-error-handling",
+      "juror": "go-error-handling-juror",
+      "fixture": "examples/eval/scale/go-error-handling",
+      "planted_defect": "In store/account.go Get(), the sql.ErrNoRows branch wraps the ErrAccountNotFound sentinel with %v instead of %w, so the downstream errors.Is(err, ErrAccountNotFound) checks in service/transfer.go and transport/handler.go silently fail (404 mapping is lost, returns 500).",
+      "defect_location": "store/account.go, ~line 36 (Get, inside the errors.Is(err, sql.ErrNoRows) branch)",
+      "expect_match": [
+        "%v instead of %w",
+        "errors.is breaks",
+        "sentinel not unwrappable",
+        "account not found misclassified"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "correct %w wrap of ErrAccountNotFound in UpdateBalance just lines below the defect",
+        "correct %w wrap on the very next line of Get for the generic scan error",
+        "deferred rows.Close() with ignored error (_ = rows.Close())",
+        "log.Printf using %v for rbErr in run() rollback path (legit logging, not wrapping)",
+        "writeJSON ignoring json encode error with a bare return",
+        "ErrDuplicateTransfer correctly wrapped with %w in transfer.go Insert"
+      ]
+    },
+    {
+      "id": "go-performance-scale",
+      "base": "go-performance",
+      "juror": "go-performance-juror",
+      "fixture": "examples/eval/scale/go-performance",
+      "planted_defect": "Enricher.redactValue calls regexp.Compile(p.Expr) for every static redaction pattern on every _raw field of every event in the per-request batch loop, instead of compiling the fixed patterns once at construction.",
+      "defect_location": "enrich/enricher.go, ~line 63 (inside redactValue, the `for _, p := range e.redact { re, err := regexp.Compile(p.Expr) ... }` loop), reached per-event via server/handler.go ServeHTTP batch loop -> Enricher.Enrich.",
+      "expect_match": [
+        "regexp compiled per request",
+        "precompile patterns at construction",
+        "hot-path allocation",
+        "redaction loop"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "filter/rules.go CompileRules correctly compiles regexes once at startup (the right pattern, looks similar to the defect)",
+        "package-level regexp.MustCompile for ipv4Pattern/emailPattern in enricher.go (correctly precompiled)",
+        "enrich/geo.go loadShard uses defer f.Close() and is called from a loop in LoadGeoTable, but per-iteration in its own function and startup-only (correct, not a defer-in-tight-loop bug)",
+        "sync.Pool decPool in server/handler.go reusing event slices (legit pooling that resembles an allocation concern)",
+        "sort.Strings + appendUnique O(n^2) per event in filter.go (minor, non-blocking)",
+        "emailPattern.ReplaceAllString allocating a new string per call (legitimate, unavoidable)"
+      ]
+    },
+    {
+      "id": "table-format-scale",
+      "base": "table-format",
+      "juror": "table-format-juror",
+      "fixture": "examples/eval/scale/table-format",
+      "planted_defect": "payment_events.fee_amount is altered decimal(18,2) -> decimal(18,4), a decimal scale change Iceberg cannot evolve in place (only precision can increase with scale fixed), so the ALTER fails / requires a full rewrite.",
+      "defect_location": "ddl/payments/0007_payment_events_evolve.sql ~line 32 (ALTER COLUMN fee_amount TYPE decimal(18,4)); also declared in migrations/manifest.yaml ~line 52 (from decimal(18,2) to decimal(18,4)).",
+      "expect_match": [
+        "decimal scale change",
+        "fee_amount",
+        "scale not promotable in iceberg",
+        "requires data rewrite"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "captured_amount decimal(12,2)->decimal(18,2) legit precision widening",
+        "refund_amount/gateway_fee decimal(12,2)->decimal(18,2) legit precision widening",
+        "amount_minor int->bigint legit integer widening",
+        "psp_ref->psp_reference legit iceberg field-id rename",
+        "additive partition-spec evolution bucket(32, settlement_batch_id)",
+        "new nullable add columns and settlement_batches create table"
+      ]
+    },
+    {
+      "id": "partitioning-layout-scale",
+      "base": "partitioning-layout",
+      "juror": "partitioning-layout-juror",
+      "fixture": "examples/eval/scale/partitioning-layout",
+      "planted_defect": "fct_telemetry__session_facts is partitioned by session_start_second (date_trunc('second', session_start_ts)), a second-precision timestamp yielding up to ~86,400 partitions/day and a small-files explosion.",
+      "defect_location": "models/telemetry/fct_telemetry__session_facts.sql, config block line 5 (partition_by=['session_start_second']) with the derived column at line ~46 (date_trunc('second', ...))",
+      "expect_match": [
+        "second-precision partition key",
+        "small-files explosion",
+        "high-cardinality partition column",
+        "should partition by date"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "cluster_by on high-cardinality device_id/session_id (correct clustering, not partitioning)",
+        "two-level partition_by=['event_date','event_hour'] with 24 hour buckets (legit)",
+        "bucketed_write macro bucketizing a near-unique join key (correct)",
+        "assert_partition_grain CI guardrail macro that counts partitions",
+        "session_date column computed but not used as the partition key, sitting next to the bad key"
+      ]
+    },
+    {
+      "id": "storage-format-scale",
+      "base": "storage-format",
+      "juror": "storage-format-juror",
+      "fixture": "examples/eval/scale/storage-format",
+      "planted_defect": "In events_activity_fact (the largest curated Parquet table) the primary time-range filter/sort column event_time is declared type: string instead of timestamp, so analyst queries must cast it in WHERE predicates and Parquet row-group min/max statistics give no useful pruning, defeating predicate pushdown on the dominant access pattern.",
+      "defect_location": "pipelines/lakehouse/table_configs/events_activity_fact.yaml, lines 35-37 (event_time column type: string; also listed as the leading sort_by key at line 11)",
+      "expect_match": [
+        "stringly-typed filter column",
+        "predicate pushdown defeated",
+        "timestamp typing / row-group min-max pruning",
+        "event_time"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "dim_merchant written as JSON with compression: none (legit: tiny broadcast lookup, not columnar)",
+        "raw_app_events with every field typed as string (legit schema-on-read landing zone, never filtered)",
+        "sessions_daily_agg correctly uses timestamp window_start as a positive contrast that could distract",
+        "ingest_date string-vs-date partition discussions",
+        "raw_event_time stored as string in the raw zone (correct, downstream typing happens in the job)"
+      ]
+    },
+    {
+      "id": "terraform-scale",
+      "base": "terraform",
+      "juror": "terraform-juror",
+      "fixture": "examples/eval/scale/terraform",
+      "planted_defect": "The processor IAM policy's \"IdempotencyGuard\" statement uses Resource arn:aws:dynamodb:REGION:ACCOUNT:table/* , granting GetItem/PutItem/UpdateItem on every DynamoDB table in the account instead of just the idempotency table.",
+      "defect_location": "examples/eval/scale/terraform/iam.tf, IdempotencyGuard statement, approx line 102 (resources = [\"...:table/*\"])",
+      "expect_match": [
+        "iam resource wildcard",
+        "least privilege",
+        "all dynamodb tables",
+        "overly broad arn"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "legit s3 object-level arn ending in /* (ReadUploads)",
+        "legit dynamodb GSI arn ending in /index/* on the documents table",
+        "legit cloudwatch log-group arn ending in :* for log streams",
+        "legit 0.0.0.0/0 egress on 443 for the processor and metrics SGs",
+        "legit security-group reference via referenced_security_group_id (vpce_from_processor) that is scoped, not 0.0.0.0/0",
+        "legit whole-VPC-cidr ingress on the metrics proxy scrape port"
+      ]
+    },
+    {
+      "id": "deployment-scale",
+      "base": "deployment",
+      "juror": "deployment-juror",
+      "fixture": "examples/eval/scale/deployment",
+      "planted_defect": "The prod-us Stage is auto-promoted (ProjectConfig promotionPolicies sets autoPromotionEnabled: true for prod-us) yet has no spec.verification of its own, so freight verified only in staging flows straight to production with no prod-side gate, analysis, or manual approval.",
+      "defect_location": "kargo/stages/prod-us.yaml (Stage spec has no `verification:` block, ~lines 9-56) in combination with kargo/project-config.yaml (prod-us promotionPolicy `autoPromotionEnabled: true`, ~line 14-16)",
+      "expect_match": [
+        "prod auto-promotion",
+        "missing prod verification",
+        "verification only on staging",
+        "no promotion gate"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "dev stage auto-promotes with no verification (legitimate for non-prod)",
+        "staging AnalysisTemplate args scoped only to the staging namespace/prometheus (legit)",
+        "ApplicationSet prod-us app uses automated sync with prune+selfHeal (normal GitOps, baits 'auto-sync on prod is unsafe')",
+        "AnalysisTemplate count/failureLimit and ApplicationSet retry.limit tuning differences per env",
+        "templatePatch adding extra retries only for prod-us"
+      ]
+    },
+    {
+      "id": "dimensional-modeling-scale",
+      "base": "dimensional-modeling",
+      "juror": "dimensional-modeling-juror",
+      "fixture": "examples/eval/scale/dimensional-modeling",
+      "planted_defect": "The invoice-header-grain measure invoices.invoice_total is carried onto the line-grain fct_invoice_lines (one row per invoice line) and then summed as sum(invoice_total) in agg_billing_daily, double-counting the invoice total for every invoice that has more than one line.",
+      "defect_location": "models/marts/billing/fct_invoice_lines.sql line 64 (select of invoices.invoice_total onto the line-grain fact); the non-additive sum manifests in models/marts/billing/agg_billing_daily.sql line 25 (sum(invoice_total) as billed_total)",
+      "expect_match": [
+        "header-grain measure",
+        "line grain fact",
+        "double count",
+        "additivity"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "allocated_invoice_discount: a header invoice_discount CORRECTLY allocated to line grain by subtotal share (reconciles to invoice, looks like the defect but is right)",
+        "unit_price: a genuinely non-additive per-unit rate kept on the line fact as detail only and never summed (baits a non-additive-rate false positive)",
+        "line_tax and line_amount: legitimately additive line measures summed in the aggregate",
+        "dim_subscription_plan SCD2 valid_from/valid_to/is_current logic (correct, draws scrutiny away)",
+        "invoice_status/currency_code/billing_period header attributes carried as degenerate/descriptive columns (legitimate, not measures)"
+      ]
+    },
+    {
+      "id": "slowly-changing-dimensions-scale",
+      "base": "slowly-changing-dimensions",
+      "juror": "slowly-changing-dimensions-juror",
+      "fixture": "examples/eval/scale/slowly-changing-dimensions",
+      "planted_defect": "The customer as-of join in fct_orders_enriched matches on `orders.ordered_at between cust.valid_from and cust.valid_to`, an inclusive-on-both-bounds BETWEEN against half-open SCD2 windows, so an order whose timestamp equals a version boundary matches both the expiring and the new customer version and fans out (duplicate order rows).",
+      "defect_location": "models/marts/fct_orders_enriched.sql, ~line 50 (customer_enriched CTE join condition)",
+      "expect_match": [
+        "inclusive both bounds",
+        "boundary duplicate fan-out",
+        "half-open interval",
+        "as-of join"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "correct half-open product as-of join via as_of_join macro (>= valid_from and < valid_to)",
+        "correct half-open FX-rate as-of join (>= effective_from and < effective_to)",
+        "legitimate static reporting-window BETWEEN filter on ordered_at in orders_in_window CTE",
+        "coalesce of open valid_to to 9999-12-31 sentinel in both dimensions",
+        "SCD2 change-detection via lag/lead hash comparison",
+        "order_id unique test in _marts.yml that the fan-out would actually trip"
+      ]
+    },
+    {
+      "id": "normalization-relational-scale",
+      "base": "normalization-relational",
+      "juror": "normalization-relational-juror",
+      "fixture": "examples/eval/scale/normalization-relational",
+      "planted_defect": "The `products` table uses a surrogate `id BIGSERIAL` PK but never adds a UNIQUE constraint on its natural key `sku` (only a non-unique index), so duplicate SKUs can be inserted.",
+      "defect_location": "migrations/0044_create_products.sql (sku declared NOT NULL ~line 3; only a plain `CREATE INDEX products_sku_idx` ~line 15, no UNIQUE). Reinforced in models.py Product.sku (~line 58, index=True but no unique=True).",
+      "expect_match": [
+        "unique constraint",
+        "natural key",
+        "sku",
+        "surrogate key"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "stock_movements.extended_cost is a derived-looking unit_cost*qty value but is a legit immutable ledger snapshot, not a transitive dependency",
+        "warehouses.code, product_categories.slug, and stock_movements.reference_code all correctly carry UNIQUE on their natural keys, resembling products but correct",
+        "inventory_levels has a correct composite UNIQUE(product_id, warehouse_id)",
+        "products_sku_idx non-unique index baits the reader into thinking sku uniqueness is handled",
+        "repository.upsert_product uses ON CONFLICT(sku) which corroborates the missing constraint but may look like a pure correctness bug"
+      ]
+    },
+    {
+      "id": "semantic-layer-metrics-scale",
+      "base": "semantic-layer-metrics",
+      "juror": "semantic-layer-metrics-juror",
+      "fixture": "examples/eval/scale/semantic-layer-metrics",
+      "planted_defect": "The subscription_mrr measure (agg: sum) sits on the invoice-line-grain model where subscriptions fan out one-to-many across invoice lines, so summing the repeated subscription-grain MRR multiplies it by the line count and double-counts; it is exposed as the monthly_recurring_revenue metric.",
+      "defect_location": "models/semantic/sem_subscription_invoice_lines.yml, measures block (subscription_mrr, ~lines 56-59), rooted in the fan-out join in models/marts/subscriptions/fct_subscription_invoice_lines.sql (~lines 36-40)",
+      "expect_match": [
+        "fan-out",
+        "grain",
+        "additivity",
+        "double-count"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "effective_discount_rate ratio is sum(discount)/sum(gross) but both measures are at the same invoice-line grain, so it is correct",
+        "total_mrr/total_arr/total_seats in the daily model are sum measures on a daily snapshot but correctly guarded with non_additive_dimension window_choice max (semi-additive point-in-time)",
+        "billed_subscriptions is count_distinct of subscription_id on the same fan-out table, which correctly dedups and is fine",
+        "revenue_per_billed_subscription and revenue_per_active_subscription ratios pair numerator and denominator measures from the same semantic model grain",
+        "net_revenue_retention ratio combines two semi-additive measures, mislabeled but arithmetically valid"
+      ]
+    },
+    {
+      "id": "data-leakage-scale",
+      "base": "data-leakage",
+      "juror": "data-leakage-juror",
+      "fixture": "examples/eval/scale/data-leakage",
+      "planted_defect": "add_regional_churn_rate computes a per-region target mean over the full dataframe and engineer_features runs it before train_test_split, so the region_churn_rate feature leaks the label into both validation folds and the holdout set.",
+      "defect_location": "churn_model/churn/features.py, add_regional_churn_rate (~lines 53-60), invoked via engineer_features before the split in churn/train.py::run (~line 35)",
+      "expect_match": [
+        "target leakage",
+        "aggregate fit on full data",
+        "computed before train/test split",
+        "region_churn_rate"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "TargetMeanEncoder is named target-encoding but is correctly fit per CV fold inside the pipeline",
+        "StandardScaler/SimpleImputer correctly nested in ColumnTransformer through cross_val_score",
+        "FrequencyEncoder fits on training counts only and never touches the label",
+        "features.py docstring asserts all transforms are label-free and safe on the full frame",
+        "cross_validate_model with StratifiedKFold looks like the leakage-sensitive surface but is clean"
+      ]
+    },
+    {
+      "id": "feature-engineering-scale",
+      "base": "feature-engineering",
+      "juror": "feature-engineering-juror",
+      "fixture": "examples/eval/scale/feature-engineering",
+      "planted_defect": "account_balance.attach() anchors its backward as-of join on label_at (decision_at + 90-day performance window) instead of decision_at, so balance features observed during the label window leak into training rows.",
+      "defect_location": "pipelines/risk_features/feature_groups/account_balance.py, line ~35 (anchor_col=\"label_at\" in the as_of_join call)",
+      "expect_match": [
+        "label timestamp anchor",
+        "as-of join leakage",
+        "point-in-time",
+        "future feature observation"
+      ],
+      "num_files": 10,
+      "distractors": [
+        "credit_bureau merge_asof tolerance + 35-day staleness window (legit time fiddling near the join)",
+        "spine.py legitimately derives and uses label_at for label resolution and maturity censoring",
+        "sample_weight recency decay computed off decision_at",
+        "test_pointintime.py includes a no-future-rows leakage guard and PIT tests but only covers transactions/bureau, making the author look careful",
+        "merge_asof direction=backward / allow_exact_matches and out_of_time_split on decision_at"
+      ]
+    },
+    {
+      "id": "model-evaluation-scale",
+      "base": "model-evaluation",
+      "juror": "model-evaluation-juror",
+      "fixture": "examples/eval/scale/model-evaluation",
+      "planted_defect": "The promotion gate and headline summary judge the ~1%-prevalence fraud model on accuracy and ROC-AUC only (accuracy floor 0.985 sits below the all-negative baseline of ~0.99), with no PR-AUC or recall in the decision metrics.",
+      "defect_location": "fraud_eval/fraud_eval/report.py \u2014 headline dict (build_evaluation_report, ~lines 58-63) and promotion_gate (~lines 78-95)",
+      "expect_match": [
+        "pr-auc",
+        "recall",
+        "class imbalance",
+        "roc-auc"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "thresholds.select_operating_threshold tunes the operating point on the validation fold only and run_eval splits by time then evaluates on the held-out test fold (correct, resembles a 'threshold tuned on test' defect but isn't)",
+        "metrics.py defines and tests average_precision (PR-AUC) and recall_at_threshold, proving author awareness, but they are never surfaced in the headline or gate",
+        "report._segment_auc reports ROC-AUC per amount bucket as a legitimate secondary breakdown",
+        "positive_rate/prevalence is computed and stored so the imbalance is visible in the report row"
+      ]
+    },
+    {
+      "id": "ml-reproducibility-scale",
+      "base": "ml-reproducibility",
+      "juror": "ml-reproducibility-juror",
+      "fixture": "examples/eval/scale/ml-reproducibility",
+      "planted_defect": "Training DataLoader runs num_workers=4 with global-NumPy/random augmentations but sets no worker_init_fn or generator, so forked workers never reseed and per-worker augmentation RNG is nondeterministic across runs.",
+      "defect_location": "tinyvision/tinyvision/data.py, train_loader construction (~lines 60-68); symptom originates from global np.random use in tinyvision/tinyvision/transforms.py",
+      "expect_match": [
+        "worker_init_fn",
+        "dataloader workers",
+        "numpy seed",
+        "nondeterministic augmentation"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "split_generator pins random_split correctly",
+        "val loader uses num_workers=0",
+        "_balanced_class_weights uses local default_rng(seed)",
+        "seed_everything sets cudnn.deterministic/benchmark and use_deterministic_algorithms",
+        "PYTHONHASHSEED and CUBLAS_WORKSPACE_CONFIG set",
+        "tests assert global-stream and generator reproducibility"
+      ]
+    },
+    {
+      "id": "model-serving-mlops-scale",
+      "base": "model-serving-mlops",
+      "juror": "model-serving-mlops-juror",
+      "fixture": "examples/eval/scale/model-serving-mlops",
+      "planted_defect": "Online serving imputes missing numeric features with a hardcoded 0.0 instead of the persisted training medians, producing train/serve skew.",
+      "defect_location": "serving/feature_assembler.py, assemble_features() numeric loop (~line 39: feature = _DEFAULT_NUMERIC if coerced is None else coerced), with _DEFAULT_NUMERIC = 0.0 defined ~line 11",
+      "expect_match": [
+        "train/serve skew",
+        "missing-value imputation",
+        "numeric medians",
+        "feature parity"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "registry.py correctly refuses a floating 'latest' alias and resolves a PINNED_VERSION pointer (bait for a model-alias finding)",
+        "identical amount clipping bounds in both training and serving (a place skew could hide but is consistent)",
+        "categorical UNKNOWN_CATEGORY fallback is correctly shared via the persisted vocab in both paths",
+        "request-level channel='web' default in app.py looks like imputation but is not a model feature",
+        "parity tests only exercise fully-populated rows, so they pass and do not expose the missing-numeric skew",
+        "feature order validation (order_matches / order check at load) looks like the skew guard but only checks column ordering"
+      ]
+    },
+    {
+      "id": "model-monitoring-drift-scale",
+      "base": "model-monitoring-drift",
+      "juror": "model-monitoring-drift-juror",
+      "fixture": "examples/eval/scale/model-monitoring-drift",
+      "planted_defect": "The monitor registers and reports full drift-surface coverage (feature, prediction, concept, performance) but run() only computes input feature drift plus output/prediction drift \u2014 there is no concept/label drift check and no delayed performance evaluation against ground truth despite a known 7-day label lag, so model accuracy decay would go undetected while DriftReport.summary() asserts all surfaces were monitored.",
+      "defect_location": "drift/monitor.py: DRIFT_SURFACES constant (~line 22) and DriftReport.covered_surfaces/summary() (~lines 45-58) claim concept+performance coverage, while run() and _check_* methods (~lines 70-90) only execute feature and prediction checks; reinforced by README \"Coverage\" section.",
+      "expect_match": [
+        "concept drift",
+        "label lag",
+        "performance/ground-truth monitoring",
+        "overstated coverage"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "prediction/output score-distribution PSI and positive-rate shift in prediction_drift.py (output drift that superficially resembles a performance signal)",
+        "label_lag_days legitimately used in reference.py baseline_window to anchor the reference window (resembles handling performance-under-label-lag)",
+        "README 'Baselines and label lag' section explaining the 7-day delay, which can bait a reviewer into thinking ground-truth lag is fully addressed",
+        "threshold-calibration / PSI 0.2 boundary claims"
+      ]
+    },
+    {
+      "id": "statistical-rigor-scale",
+      "base": "statistical-rigor",
+      "juror": "statistical-rigor-juror",
+      "fixture": "examples/eval/scale/statistical-rigor",
+      "planted_defect": "screen_engagement_signals reports whichever of the 7 secondary metrics clear raw p<0.05 as headline \"engagement wins\" with no multiplicity correction applied, and render_summary surfaces them as conclusions.",
+      "defect_location": "analysis/cohort_analysis.py, screen_engagement_signals (~lines 62-69) surfaced via render_summary (~lines 90-93)",
+      "expect_match": [
+        "multiplicity",
+        "multiple comparisons",
+        "family-wise error",
+        "uncorrected p-value"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "significance.py provides correct bonferroni/benjamini_hochberg/holm helpers that are never applied to the headline screen",
+        "evaluate_secondary correctly applies Holm step-down to the same secondary family (resembles but is correct)",
+        "power.py computes a legitimate pre-registered power/sample-size plan for the primary metric, baiting a 'p<0.05 with no power basis' false positive",
+        "primary decision in render_summary is correctly gated on both p<0.05 and achieved power",
+        "winsorize and Welch CI code that look statistically loaded but are correct"
+      ]
+    },
+    {
+      "id": "experimentation-abtest-scale",
+      "base": "experimentation-abtest",
+      "juror": "experimentation-abtest-juror",
+      "fixture": "examples/eval/scale/experimentation-abtest",
+      "planted_defect": "revenue_per_session CIs and significance are computed at session grain (se = std/sqrt(n_sessions)) while randomization is per user_id, ignoring within-user correlation and understating variance.",
+      "defect_location": "src/variance.py, estimate_for() session-grain branch (~line 64-68) routing revenue_per_session into mean_estimate; manifests in difference_test output for that metric in src/report.py",
+      "expect_match": [
+        "analysis unit mismatch",
+        "per-user randomization",
+        "session-level variance",
+        "clustering"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "O'Brien-Fleming sequential alpha spending in sequential.py (peeking is correctly corrected)",
+        "clustered_ratio_estimate correctly applied to primary-metric robustness in report.py",
+        "CUPED variance reduction at user grain in cuped.py",
+        "user-grain Bernoulli proportion SE for add_to_cart_rate",
+        "SRM chi-square test on user counts in srm.py"
+      ]
+    },
+    {
+      "id": "causal-inference-scale",
+      "base": "causal-inference",
+      "juror": "causal-inference-juror",
+      "fixture": "examples/eval/scale/causal-inference",
+      "planted_defect": "activated_within_7d, a post-treatment mediator of the onboarding-call to retention effect, is included in BASELINE_BINARY (the adjustment set) and thus enters both the propensity and outcome models, biasing the ATE.",
+      "defect_location": "src/causal/covariates.py, BASELINE_BINARY list (~line 36, the \"activated_within_7d\" entry); it then propagates through AdjustmentSet into propensity.py and estimators.py",
+      "expect_match": [
+        "post-treatment adjustment",
+        "mediator",
+        "collider bias",
+        "adjustment set"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "mediation.py legitimately uses activated_within_7d as a mediator and correctly excludes it from confounders (_baseline_only), baiting a false positive on 'they conditioned on a post-treatment variable'",
+        "days_to_first_activation derived in data.py but deliberately not placed in the adjustment set",
+        "stabilized IPW, propensity clipping/trimming, and check_overlap positivity diagnostics (all legitimate)",
+        "naive_difference correctly labeled estimand='association' not causal",
+        "AIPW doubly-robust influence-function SE and CI (correct)"
+      ]
+    },
+    {
+      "id": "notebook-productionization-scale",
+      "base": "notebook-productionization",
+      "juror": "notebook-productionization-juror",
+      "fixture": "examples/eval/scale/notebook-productionization",
+      "planted_defect": "churn_scoring.ipynb relies on out-of-order kernel state: the high-risk filter cell (execution_count 9) uses `cutoff` before the cell that defines it (execution_count 6, appearing later in document order), so a cold papermill/nbconvert top-to-bottom run raises NameError.",
+      "defect_location": "notebooks/churn_scoring.ipynb \u2014 the 5th code cell (the `high_risk = features[... >= cutoff]` cell with execution_count 9, ~line 60), which precedes the `cutoff = features[\"propensity\"].quantile(...)` cell (execution_count 6)",
+      "expect_match": [
+        "execution_count",
+        "out-of-order",
+        "hidden state",
+        "cutoff undefined"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "legitimate hardcoded-looking default paths driven by env/config (/tmp/churn_cache, /mnt/warehouse/exports/churn, /tmp/churn_runs)",
+        "README ~/scratch papermill example (docs only, not job code)",
+        "literal model_uri default in the parameters cell that looks hardcoded but is parameterized",
+        "build_churn_features.ipynb with clean monotonic execution_count and similar structure",
+        "benign 3->5 execution_count skip in the scoring notebook (re-run, not a bug)"
+      ]
+    },
+    {
+      "id": "streaming-eventtime-scale",
+      "base": "streaming-eventtime",
+      "juror": "streaming-eventtime-juror",
+      "fixture": "examples/eval/scale/streaming-eventtime",
+      "planted_defect": "The order revenue stream's watermark/timestamp assigner extracts ingestTimestampMillis instead of eventTimestampMillis while feeding TumblingEventTimeWindows, so the hourly event-time aggregation is actually driven by ingest time.",
+      "defect_location": "/Users/lukekranz/Documents/GitHub/jje/examples/eval/scale/streaming-eventtime/src/main/java/com/acme/streaming/revenue/RevenueAggregationJob.java around lines 45-58 (withTimestampAssigner returning event.getIngestTimestampMillis() at line 47, consumed by TumblingEventTimeWindows at line 58)",
+      "expect_match": [
+        "watermark",
+        "event time",
+        "ingest timestamp",
+        "windowing"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "WatermarkFactory.refundWatermarks correctly extracts eventTimestampMillis (parallel, correct event-time path)",
+        "MerchantRevenueWindowFunction legitimately computes maxIngestionLagMillis = ingest - event for monitoring",
+        "panel.emittedAtMillis uses context.currentProcessingTime() legitimately",
+        "PipelineHeartbeatJob intentionally uses TumblingProcessingTimeWindows for wall-clock throughput/liveness",
+        "RevenueAccumulator tracks both maxEventTimestampMillis and maxIngestTimestampMillis"
+      ]
+    },
+    {
+      "id": "orchestration-dag-scale",
+      "base": "orchestration-dag",
+      "juror": "orchestration-dag-juror",
+      "fixture": "examples/eval/scale/orchestration-dag",
+      "planted_defect": "export_attribution_snapshot derives its S3 write partition (dt=) from pendulum.now(\"UTC\") wall-clock instead of the logical date {{ ds }}, so backfills and post-midnight retries write the snapshot under the wrong partition.",
+      "defect_location": "dags/marketing/attribution_daily.py, line ~25 (export_attribution_snapshot: partition_date = pendulum.now(\"UTC\").to_date_string())",
+      "expect_match": [
+        "wall-clock partition",
+        "logical date ds",
+        "backfill non-determinism",
+        "now() instead of execution date"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "assert_freshness uses pendulum.now() to compute touchpoint age (legit freshness check)",
+        "partitions.run_metadata sets ingested_at = pendulum.now() audit timestamp (legit)",
+        "callbacks._format_alert uses pendulum.now() for alerted_at message timestamp (legit)",
+        "static START_DATE = pendulum.datetime(2024,11,1) in config (legit, not a partition)",
+        "SQL files and the export SELECT all correctly filter on {{ ds }} / context['ds']"
+      ]
+    },
+    {
+      "id": "query-performance-sql-scale",
+      "base": "query-performance-sql",
+      "juror": "query-performance-sql-juror",
+      "fixture": "examples/eval/scale/query-performance-sql",
+      "planted_defect": "int_order_shipments joins shipments to orders via `cast(o.order_id as varchar) = s.order_reference`, wrapping the clustered NUMBER key order_id in a CAST, which defeats micro-partition pruning/sargability on the join; the cast should be applied to the non-clustered VARCHAR side (e.g. try_to_number(s.order_reference) = o.order_id).",
+      "defect_location": "models/intermediate/int_order_shipments.sql, join condition in the `joined` CTE (approx line 64: `on cast(o.order_id as varchar) = s.order_reference`)",
+      "expect_match": [
+        "cast on clustered/indexed join key",
+        "defeats partition pruning",
+        "non-sargable",
+        "order_id"
+      ],
+      "num_files": 7,
+      "distractors": [
+        "sargable range filter placed_at_utc >= dateadd(...) in int model (legit, no function on column)",
+        "incremental filter order_date >= (select max(order_date)...) in fct (legit)",
+        "to_date()/upper()/lower()/trim()/cast() used only in staging projections and group-by, not in predicates",
+        "to_date(delivered_at)=order_date inside a CASE projection for same_day_delivered (projection only, not a join/filter on an indexed key)",
+        "yml note that order_reference is VARCHAR, baiting reviewers to accept the cast as necessary",
+        "clean raw-key joins on shipment_id and customer_id"
+      ]
+    },
+    {
+      "id": "distributed-compute-spark-scale",
+      "base": "distributed-compute-spark",
+      "juror": "distributed-compute-spark-juror",
+      "fixture": "examples/eval/scale/distributed-compute-spark",
+      "planted_defect": "enrich.py broadcasts the full append-only campaign_dim (load_campaign_dim reads the entire table, ~85k rows today but documented as retained-indefinitely and projected to exceed 5M rows within ~18 months), so the broadcast join will outgrow the broadcast threshold and OOM the driver.",
+      "defect_location": "jobs/engagement/enrich.py line 61 (.join(broadcast(campaigns), ...)), with the growth note in conf/engagement_enrichment.yaml source_notes.campaign_dim and the full-table loader in jobs/engagement/reference.py load_campaign_dim",
+      "expect_match": [
+        "broadcast join",
+        "campaign_dim grows unbounded",
+        "driver oom / broadcast threshold",
+        "append-only full table"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "broadcast(country) on a static ~250-row ISO seed (legitimate)",
+        "broadcast(rates) on a ~160-row daily FX snapshot after partition filter (legitimate)",
+        "device_dim (600M rows) joined WITHOUT broadcast and docstring says never broadcast (correct)",
+        ".collect() in _assert_single_partition guarded by .limit(10) on distinct event_date (safe, baits the too-high-limit-collect pattern)",
+        "repartition(output_partitions, 'event_date') before partitioned write (legitimate)"
+      ]
+    },
+    {
+      "id": "algorithmic-complexity-scale",
+      "base": "algorithmic-complexity",
+      "juror": "algorithmic-complexity-juror",
+      "fixture": "examples/eval/scale/algorithmic-complexity",
+      "planted_defect": "In annotate_anomalies, each event row's session_id is membership-tested against flagged_sessions, a Python list built from anomalies[\"session_id\"].tolist(), inside a loop over all events, making it O(events x anomalous_sessions).",
+      "defect_location": "service/aggregator.py, annotate_anomalies (flagged_sessions list at ~line 54 and the `if row.session_id in flagged_sessions` loop at ~lines 58-62)",
+      "expect_match": [
+        "membership test against list in loop",
+        "quadratic / o(n^2) on hot path",
+        "convert flagged_sessions to a set",
+        "scales with data volume"
+      ],
+      "num_files": 6,
+      "distractors": [
+        "collapse_repeat_events uses `in` on a set (correct O(1))",
+        "filter_known_users uses vectorized .isin with a set",
+        "weighted_engagement loops over fixed 4-entry WEIGHTED_KINDS dict checking wide.columns",
+        "loaders._read_many builds a list and calls pd.concat once outside the loop"
+      ]
+    },
+    {
+      "id": "data-structure-selection-scale",
+      "base": "data-structure-selection",
+      "juror": "data-structure-selection-juror",
+      "fixture": "examples/eval/scale/data-structure-selection",
+      "planted_defect": "The creator-facing dashboard model agg_creator_engagement_hourly.sql computes exact count(distinct viewer_id) and exact percentile(total_watch_ms, ...) over high-cardinality per-viewer rows on an interactive, per-page-load serving path where approximate sketches (approx_count_distinct, percentile_approx / HLL) are the correct data structure.",
+      "defect_location": "models/engagement/agg_creator_engagement_hourly.sql, the `hourly` CTE (approx lines 24-33): count(distinct viewer_id) plus percentile(total_watch_ms, 0.5) and percentile(total_watch_ms, 0.95)",
+      "expect_match": [
+        "count distinct high cardinality",
+        "exact percentile sort",
+        "approximate sketch hll",
+        "interactive dashboard path"
+      ],
+      "num_files": 8,
+      "distractors": [
+        "exact count(distinct country_code) in same dashboard model is low-cardinality and fine",
+        "count(distinct video_id/device_type) in int_session_rollup is session-scoped tiny cardinality",
+        "agg_platform_daily_sketch already correctly uses approx_count_distinct and percentile_approx",
+        "fct_payout_reconciliation uses exact distinct counts but is nightly finance where exactness is required"
+      ]
+    }
+  ]
+}

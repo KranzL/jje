@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: dim_requesters
+    description: >
+      One row per ticket requester, deduplicated to the latest contact record
+      per ticket. Customer-identifying attributes are masked at publish time.
+    config:
+      post-hook: "{{ apply_masking_policies() }}"
+    meta:
+      owner: support-analytics
+      contains_pii: true
+    columns:
+      - name: requester_key
+        tests:
+          - not_null
+          - unique
+      - name: ticket_id
+        tests:
+          - not_null
+      - name: requester_email
+        description: Email address of the requester.
+        meta:
+          pii: true
+          masking_policy: mask_email
+        tests:
+          - not_null
+      - name: requester_phone
+        description: Phone number of the requester.
+        meta:
+          pii: true
+          masking_policy: mask_phone
+      - name: ext_ref
+        description: Secondary reference value carried from staging.
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country of the requester.
+
+  - name: fct_ticket_events
+    description: >
+      One row per audited state transition on a ticket. Grain is ticket_event_id.
+    config:
+      post-hook: "{{ apply_masking_policies() }}"
+    meta:
+      owner: support-analytics
+      contains_pii: false
+    columns:
+      - name: ticket_event_id
+        tests:
+          - not_null
+          - unique
+      - name: ticket_id
+        tests:
+          - not_null
+      - name: external_ticket_ref
+        description: Upstream channel reference, not customer-identifying.
+      - name: agent_identifier
+        description: Internal agent user id.
+      - name: changed_field
+        tests:
+          - accepted_values:
+              values: ['status', 'priority', 'assignee', 'group']

@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: billing
+    database: raw
+    schema: billing
+    tables:
+      - name: invoice_lines
+        loaded_at_field: _loaded_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+      - name: fx_rates
+        loaded_at_field: _loaded_at
+        freshness:
+          warn_after: {count: 36, period: hour}
+          error_after: {count: 72, period: hour}

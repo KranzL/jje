@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: payments
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - list:
+      elements:
+      - env: dev
+        branch: stage/dev
+        cluster: https://dev.us.acme.internal
+        autoSync: true
+      - env: staging
+        branch: stage/staging
+        cluster: https://staging.us.acme.internal
+        autoSync: true
+      - env: prod-us
+        branch: stage/prod-us
+        cluster: https://prod.us.acme.internal
+        autoSync: true
+  template:
+    metadata:
+      name: 'payments-{{ .env }}'
+      labels:
+        app.kubernetes.io/part-of: payments
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: '.'
+    spec:
+      project: payments
+      source:
+        repoURL: https://github.com/acme/payments-manifests.git
+        targetRevision: '{{ .branch }}'
+        path: out
+      destination:
+        server: '{{ .cluster }}'
+        namespace: 'payments-{{ .env }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ApplyOutOfSyncOnly=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 3m
+  templatePatch: |
+    spec:
+      syncPolicy:
+        {{- if eq .env "prod-us" }}
+        retry:
+          limit: 5
+        {{- end }}

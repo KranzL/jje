@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: stg_telemetry__events
+    description: Cleaned, typed device telemetry events scoped to the recent ingest window.
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
+      - name: device_id
+        tests:
+          - not_null
+      - name: session_id
+        tests:
+          - not_null
+      - name: dt
+        tests:
+          - not_null
+
+  - name: int_telemetry__sessionized
+    description: >
+      Events enriched with per-session sequencing and session start/end bounds.
+      Partitioned by event_date; clustered by device_id and session_id to keep
+      session-scoped scans local without adding partitions.
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+      - name: session_id
+        tests:
+          - not_null
+      - name: event_seq
+        tests:
+          - not_null
+
+  - name: fct_telemetry__session_facts
+    description: One row per session with duration, event counts, and device attributes.
+    columns:
+      - name: session_id
+        tests:
+          - not_null
+          - unique
+      - name: device_id
+        tests:
+          - not_null
+      - name: session_duration_s
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fct_telemetry__daily_device_rollup
+    description: >
+      Account by hour rollup of telemetry volume. Partitioned by event_date and
+      event_hour (24 buckets per day) and clustered by account_id.
+    columns:
+      - name: event_date
+        tests:
+          - not_null
+      - name: event_count
+        tests:
+          - not_null
+
+  - name: dim_device
+    description: Current device to account assignment.
+    columns:
+      - name: device_id
+        tests:
+          - not_null
+          - unique

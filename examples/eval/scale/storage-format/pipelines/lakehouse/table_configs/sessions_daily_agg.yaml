@@ -1,0 +1,40 @@
+name: sessions_daily_agg
+path: s3://acme-lake/curated/sessions_daily_agg
+file_format: parquet
+write_mode: overwrite
+target_file_mb: 256
+
+partition_by:
+  - session_date
+
+sort_by:
+  - window_start
+  - account_id
+
+compression: zstd
+
+options:
+  parquet.block.size: "134217728"
+  parquet.enable.dictionary: "true"
+
+columns:
+  - name: account_id
+    type: bigint
+    nullable: false
+  - name: session_date
+    type: date
+    nullable: false
+  - name: window_start
+    type: timestamp
+    nullable: false
+  - name: window_end
+    type: timestamp
+    nullable: false
+  - name: session_count
+    type: bigint
+  - name: active_minutes
+    type: double
+  - name: events_total
+    type: bigint
+  - name: distinct_surfaces
+    type: int

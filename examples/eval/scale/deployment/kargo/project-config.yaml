@@ -1,0 +1,21 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ProjectConfig
+metadata:
+  name: payments
+  namespace: payments
+spec:
+  promotionPolicies:
+  - stageSelector:
+      name: dev
+    autoPromotionEnabled: true
+  - stageSelector:
+      name: staging
+    autoPromotionEnabled: true
+  - stageSelector:
+      name: prod-us
+    autoPromotionEnabled: true
+  webhookReceivers:
+  - name: github-payments-manifests
+    github:
+      secretRef:
+        name: gh-webhook-secret

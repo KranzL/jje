@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: canary-success-rate
+  namespace: payments
+spec:
+  args:
+  - name: service
+  - name: namespace
+  - name: prometheus-url
+  metrics:
+  - name: http-success-rate
+    interval: 1m
+    count: 5
+    successCondition: result >= 0.99
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: "{{ args.prometheus-url }}"
+        query: |
+          sum(rate(
+            http_requests_total{service="{{ args.service }}", namespace="{{ args.namespace }}", code!~"5.."}[2m]
+          ))
+          /
+          sum(rate(
+            http_requests_total{service="{{ args.service }}", namespace="{{ args.namespace }}"}[2m]
+          ))
+  - name: p99-latency
+    interval: 1m
+    count: 5
+    successCondition: result <= 0.4
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: "{{ args.prometheus-url }}"
+        query: |
+          histogram_quantile(0.99, sum(rate(
+            http_request_duration_seconds_bucket{service="{{ args.service }}", namespace="{{ args.namespace }}"}[2m]
+          )) by (le))

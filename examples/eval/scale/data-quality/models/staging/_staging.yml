@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per non-cancelled order.
+    columns:
+      - name: order_id
+        description: Natural key from the order system.
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+      - name: net_revenue
+        description: Order grand total net of order-level discounts.
+        tests:
+          - not_null
+
+  - name: stg_order_items
+    description: One row per line item on an order.
+    columns:
+      - name: order_item_id
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: stg_rep_assignments
+    description: >
+      Sales-rep credit assignments per order from the CRM. Most orders have a
+      single rep, but split deals carry one row per crediting rep with a
+      credit_share that sums to 1.0 across the order.
+    columns:
+      - name: assignment_id
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        tests:
+          - not_null
+      - name: sales_rep_id
+        tests:
+          - not_null
+
+  - name: stg_regions
+    description: Current-version region lookup, one row per region.
+    columns:
+      - name: region_id
+        tests:
+          - not_null
+          - unique
+      - name: region_name
+        tests:
+          - not_null

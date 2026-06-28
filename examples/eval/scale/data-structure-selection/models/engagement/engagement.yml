@@ -1,0 +1,61 @@
+version: 2
+
+sources:
+  - name: playback
+    database: raw
+    schema: playback
+    tables:
+      - name: raw_playback_events
+        description: Per-heartbeat playback telemetry emitted by the video players.
+
+models:
+  - name: stg_playback_events
+    description: Cleaned and typed playback heartbeat events, one row per emitted event.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: viewer_id
+        tests: [not_null]
+      - name: creator_id
+        tests: [not_null]
+
+  - name: int_session_rollup
+    description: One row per viewer session, aggregating heartbeats to session grain.
+    columns:
+      - name: session_id
+        tests: [not_null]
+      - name: rebuffer_ratio
+        description: Fraction of wall-clock time spent rebuffering during the session.
+
+  - name: agg_creator_engagement_hourly
+    description: >
+      Powers the creator-facing engagement dashboard. Queried interactively on every
+      dashboard page load, filtered by creator_id and a trailing time window. Exposed
+      through the engagement serving API.
+    columns:
+      - name: creator_id
+        tests: [not_null]
+      - name: unique_viewers
+        description: Distinct viewers for the creator in the hour bucket.
+      - name: p95_session_ms
+        description: 95th percentile of per-viewer session watch time in the hour bucket.
+
+  - name: agg_platform_daily_sketch
+    description: >
+      Internal platform-wide daily trend rollup. Not creator-facing; feeds the
+      executive trend notebook that refreshes once per day.
+    columns:
+      - name: engagement_date
+        tests: [not_null]
+      - name: approx_unique_viewers
+        description: Sketch-based distinct viewer estimate across the whole platform.
+
+  - name: fct_payout_reconciliation
+    description: >
+      Nightly finance reconciliation of billable engagement. Feeds creator payouts,
+      so viewer and session counts must be exact for audit.
+    columns:
+      - name: creator_id
+        tests: [not_null]
+      - name: billable_viewers
+        description: Exact distinct billable viewers per creator per day.

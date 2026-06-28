@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: raw
+    database: lake
+    schema: raw
+    tables:
+      - name: device_telemetry_events
+        description: >
+          Raw per-event device telemetry landed from the mobile and web SDKs,
+          partitioned by ingest date. One row per emitted client event.
+        loaded_at_field: _ingested_at
+        columns:
+          - name: dt
+            description: Ingest date partition key, formatted yyyy-MM-dd.
+          - name: event_id
+            tests:
+              - not_null
+          - name: device_id
+          - name: session_id
+          - name: event_name
+          - name: event_ts
+            description: Client-side event timestamp in UTC at millisecond resolution.
+          - name: _ingested_at
+            description: Server-side receive timestamp in UTC.
+
+      - name: device_registry
+        description: Current device to account assignment from the registry service.
+        columns:
+          - name: device_id
+            tests:
+              - not_null
+              - unique
+          - name: account_id
+          - name: platform

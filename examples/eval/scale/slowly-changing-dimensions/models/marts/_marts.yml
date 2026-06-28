@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: dim_customer_history
+    description: SCD type 2 history of CRM customer attributes with half-open validity windows.
+    columns:
+      - name: customer_history_key
+        description: Surrogate key unique per customer version.
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+      - name: valid_from
+        tests:
+          - not_null
+
+  - name: dim_product_history
+    description: SCD type 2 history of product attributes with half-open validity windows.
+    columns:
+      - name: product_history_key
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+
+  - name: fct_orders_enriched
+    description: Order grain fact enriched with the customer and product versions in effect at order time.
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_history_key
+        tests:
+          - relationships:
+              to: ref('dim_customer_history')
+              field: customer_history_key
+      - name: order_total_usd
+        tests:
+          - not_null

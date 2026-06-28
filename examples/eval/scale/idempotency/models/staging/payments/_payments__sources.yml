@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: gateway
+    database: raw
+    schema: payment_gateway
+    loaded_at_field: _ingested_at
+    freshness:
+      warn_after: {count: 6, period: hour}
+      error_after: {count: 24, period: hour}
+    tables:
+      - name: payment_event_log
+        description: >
+          Append-only event stream emitted by the payment gateway. One row per
+          state transition of a payment (authorized, captured, refunded,
+          chargeback). The same payment_id appears on multiple rows.
+        columns:
+          - name: event_id
+            description: Globally unique id for this gateway event.
+            tests:
+              - not_null
+              - unique
+          - name: payment_id
+            description: Gateway payment identifier. Repeats across event types.
+          - name: event_type
+            tests:
+              - accepted_values:
+                  values: ['authorized', 'captured', 'refunded', 'chargeback']
+      - name: settlement_batch
+        description: Daily settlement batches keyed by settlement_id.
+        columns:
+          - name: settlement_id
+            tests:
+              - not_null
+              - unique

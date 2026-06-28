@@ -1,0 +1,79 @@
+version: 2
+
+sources:
+  - name: raw
+    database: lake
+    schema: raw
+    tables:
+      - name: api_request_events
+        description: Raw per-request API gateway events, partitioned by ingest date.
+        loaded_at_field: event_ts
+        columns:
+          - name: dt
+            description: Ingest date partition key, formatted yyyy-MM-dd.
+          - name: request_id
+            tests:
+              - not_null
+          - name: account_id
+          - name: endpoint_id
+
+  - name: billing
+    database: lake
+    schema: billing
+    tables:
+      - name: account_plans
+
+models:
+  - name: stg_api_request_events
+    description: Cleaned, typed API request events scoped to the recent partition window.
+    columns:
+      - name: request_id
+        tests:
+          - not_null
+          - unique
+      - name: status_code
+        tests:
+          - not_null
+      - name: dt
+        tests:
+          - not_null
+
+  - name: int_api_usage_by_account
+    description: Hourly request metering aggregated to account grain.
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+      - name: success_rate
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+
+  - name: int_endpoint_latency
+    description: Hourly endpoint latency percentiles over a trailing seven day window.
+    columns:
+      - name: endpoint_id
+        tests:
+          - not_null
+      - name: p95_latency_ms
+        tests:
+          - not_null
+
+  - name: fct_hourly_api_usage
+    description: Account by hour usage fact joined to plan quota for billing rollups.
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+      - name: quota_fraction_used
+        tests:
+          - not_null
+
+  - name: dim_account_plan
+    description: Current active billing plan per account.
+    columns:
+      - name: account_id
+        tests:
+          - not_null
+          - unique
