@@ -120,6 +120,60 @@
       "lane": "datalake",
       "model": "haiku"
     },
+    "go-http-safety-juror": {
+      "agent": "go-http-safety-juror",
+      "skill": "go-http-safety-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "go-modules-juror": {
+      "agent": "go-modules-juror",
+      "skill": "go-modules-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "go-db-sql-juror": {
+      "agent": "go-db-sql-juror",
+      "skill": "go-db-sql-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "go-time-juror": {
+      "agent": "go-time-juror",
+      "skill": "go-time-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "go-serialization-juror": {
+      "agent": "go-serialization-juror",
+      "skill": "go-serialization-review",
+      "lane": "go",
+      "model": "sonnet"
+    },
+    "merge-upsert-juror": {
+      "agent": "merge-upsert-juror",
+      "skill": "merge-upsert-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
+    "cdc-ingest-juror": {
+      "agent": "cdc-ingest-juror",
+      "skill": "cdc-ingest-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
+    "catalog-metastore-ops-juror": {
+      "agent": "catalog-metastore-ops-juror",
+      "skill": "catalog-metastore-ops-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
+    "multi-engine-interop-juror": {
+      "agent": "multi-engine-interop-juror",
+      "skill": "multi-engine-interop-review",
+      "lane": "datalake",
+      "model": "sonnet"
+    },
     "terraform-juror": {
       "agent": "terraform-juror",
       "skill": "terraform-review",
@@ -281,7 +335,12 @@
       "security-juror",
       "go-concurrency-juror",
       "go-error-handling-juror",
-      "go-performance-juror"
+      "go-performance-juror",
+      "go-http-safety-juror",
+      "go-modules-juror",
+      "go-db-sql-juror",
+      "go-time-juror",
+      "go-serialization-juror"
     ],
     "datalake": [
       "data-contract-juror",
@@ -289,7 +348,11 @@
       "data-quality-juror",
       "table-format-juror",
       "partitioning-layout-juror",
-      "storage-format-juror"
+      "storage-format-juror",
+      "merge-upsert-juror",
+      "cdc-ingest-juror",
+      "catalog-metastore-ops-juror",
+      "multi-engine-interop-juror"
     ],
     "iac": [
       "terraform-juror",
