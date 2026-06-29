@@ -242,6 +242,17 @@ don't want it committed. To turn the feature off, set `hot_cache: false` in
 *this* repo is JJE's own project memory and a worked example of the pattern — you
 don't inherit it; the canonical `cp -r .claude .jje` install doesn't copy it.)
 
+### Priming a repo (`/jje-prime`)
+
+Point JJE at an unfamiliar repo and run **`/jje-prime`** once. It reads the code, docs,
+and conventions-in-practice (read-only) and synthesizes: a **seeded vault** (real "what
+this repo is / how it's built / where the risk lives", so the first `/jje` run isn't
+blank), **proposed conventions** (lane-organized juror rules inferred from the codebase,
+written to `.jje/conventions/PROPOSED.md` for you to review and activate — never
+auto-gating), and a **stack/lane/`ci_command` brief**. It's the front half of the Hot
+Cache and the conventions overlay: instead of seeding an empty skeleton and hand-writing
+every convention, it bootstraps both from the repo itself.
+
 ## Safety model (tested, with honest limits)
 
 JJE has **two tiers** of enforcement. We tested both — see

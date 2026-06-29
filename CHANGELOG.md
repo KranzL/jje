@@ -6,6 +6,16 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (`/jje-prime` — repository onboarding)
+- A read-only `jje-prime` skill that reads a repo (code, docs, conventions-in-practice)
+  and synthesizes JJE's context layer: a **seeded vault** (Hot Cache + architecture map
+  with real repo context), **PROPOSED project conventions** (lane-organized juror rules
+  inferred from the codebase, written to `.jje/conventions/PROPOSED.md` for review —
+  never auto-gating, since an inferred-wrong blocking rule would cause false blocks), and
+  a **stack/lane/`ci_command` brief**. It primes both the Hot Cache and the conventions
+  overlay from the repo instead of starting from a blank skeleton. Edits no source, runs
+  no build, activates no convention.
+
 ### Added (Go + datalake lane expansion — roster now 47)
 - **9 new jurors** filling coverage gaps a real Go/lakehouse review needs, surfaced by
   an adversarial completeness audit of both lanes:
