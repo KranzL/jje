@@ -6,6 +6,20 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Changed (juror strengthening — all 38 review skills to industry-standard depth)
+- Every juror review skill was audited against the `data-leakage` gold standard, then
+  strengthened to principal depth: named authoritative canon with real numbers (e.g.
+  `storage-format` now cites Parquet `block.size` 128MB / ORC stripe 64MB / ZSTD RFC
+  8478; `security` cites OWASP Top 10 2021 / CWE Top 25 / ASVS 4.0 with CVSS bands;
+  `governance` cites GDPR Art. 4(1)/9, HIPAA §164.514(b), PCI-DSS v4.0 Req 3), concrete
+  quantified checks with grep tells, an `Anti-patterns to hunt` section, and a crisp
+  gating-vs-advisory blocking bar. Skills are now a uniform 47–74 lines (was 24–86).
+- The strengthening was hardened by **three adversarial fact-check rounds** (each cited
+  standard independently verified, hallucinated specifics removed under a correct-or-
+  remove rule) plus manual fixes — e.g. corrected Avro BACKWARD/FORWARD direction,
+  golangci-lint `goerr113`→`err113`, checkov `--check-severity`→`--severity`, and the
+  IEEE-754 `log(0)` (−Inf, not NaN) case. No unverified standard ships.
+
 ### Changed (seating redesign — tiers + an auto-router)
 - Seating is now by **tier** (`quick` / `auto` (default) / `full` / `custom`), not by
   hand-picking a lane preset. A new Haiku **`router`** agent reads the finalized plan
