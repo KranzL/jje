@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JJE plan",
+  "type": "object",
+  "required": ["steps", "files_in_scope", "success_criteria"],
+  "additionalProperties": true,
+  "properties": {
+    "version": {"type": "integer"},
+    "summary": {"type": "string"},
+    "steps": {"type": "array", "items": {"type": "string"}},
+    "files_in_scope": {"type": "array", "items": {"type": "string"}},
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "success_criteria": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "explicit, checkable; this is what the jury reviews against"
+    }
+  }
+}

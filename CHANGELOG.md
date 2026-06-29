@@ -6,6 +6,20 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (plugin + marketplace distribution — versioned, auto-updating)
+- JJE now packages as a native Claude Code **plugin + one-entry marketplace**:
+  `/plugin marketplace add KranzL/jje` → `/plugin install jje@jje`, updated with
+  `/plugin update jje@jje` (or auto-update keyed to `plugin.json` version) instead of
+  re-copying files. `scripts/package-plugin.sh` builds `dist/plugin/` from the canonical
+  `.claude/` — flatten agents, `hooks/hooks.json` with `${CLAUDE_PLUGIN_ROOT}`, and
+  `jje_state.py` + the roster copied into the `jje` skill dir so a skill's Bash can reach
+  them via `${CLAUDE_SKILL_DIR}` (the only plugin var available to skills — the prior
+  staged plan wrongly used `${CLAUDE_PLUGIN_ROOT}`). The skill resolves its script and
+  roster in BOTH install modes, so the project-scoped `cp -r` form keeps working, and a
+  plugin update refreshes the harness + roster **without touching** the user's
+  `.jje/config.json`, conventions, or vault. Structurally validated; the live
+  install/update round-trip is the remaining acceptance test (not yet in CI).
+
 ### Added (`/jje-prime` — repository onboarding)
 - A read-only `jje-prime` skill that reads a repo (code, docs, conventions-in-practice)
   and synthesizes JJE's context layer: a **seeded vault** (Hot Cache + architecture map

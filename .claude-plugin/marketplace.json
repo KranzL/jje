@@ -1,14 +1,14 @@
 {
   "name": "jje",
   "owner": {
-    "name": "The JJE authors"
+    "name": "KranzL"
   },
   "plugins": [
     {
       "name": "jje",
       "source": "./dist/plugin",
-      "description": "Judge, Jury, Executioner generator-critic loop for Claude Code.",
-      "version": "0.1.0"
+      "description": "Judge, Jury, Executioner generator-critic review harness.",
+      "version": "0.2.0"
     }
   ]
 }

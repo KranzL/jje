@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JJE juror verdict",
+  "type": "object",
+  "required": ["juror", "category", "findings", "ran", "skipped"],
+  "additionalProperties": false,
+  "properties": {
+    "juror": {"type": "string"},
+    "category": {"type": "string"},
+    "ran": {"type": "array", "items": {"type": "string"}},
+    "skipped": {"type": "array", "items": {"type": "string"}},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "check", "severity", "blocking", "issue"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "check": {"type": "string", "description": "tool/rule id; keep stable across iterations for the same defect"},
+          "severity": {"enum": ["info", "warn", "error"]},
+          "blocking": {"type": "boolean"},
+          "issue": {"type": "string"},
+          "evidence": {"type": "string", "description": "required for any blocking/tool-backed finding"},
+          "suggested_fix": {"type": "string"}
+        }
+      }
+    }
+  }
+}

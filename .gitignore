@@ -14,8 +14,9 @@ __pycache__/
 .DS_Store
 *.swp
 
-# Plugin build artifact
-dist/
+# Plugin build artifact — dist/plugin IS committed (it is the marketplace source)
+dist/*
+!dist/plugin/
 
 # Terraform working artifacts (from juror/eval runs)
 .terraform/

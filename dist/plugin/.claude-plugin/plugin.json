@@ -1,0 +1,17 @@
+{
+  "name": "jje",
+  "version": "0.2.0",
+  "description": "Judge, Jury, Executioner \u2014 a generator-critic review harness: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, route accept/revise/replan/escalate with CI as the final gate.",
+  "author": {
+    "name": "KranzL"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "code-review",
+    "agents",
+    "jury",
+    "generator-critic",
+    "ci-gate"
+  ],
+  "homepage": "https://github.com/KranzL/jje"
+}

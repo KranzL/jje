@@ -34,20 +34,41 @@ project scope. The transform (`scripts/package-plugin.sh`) handles:
 
 1. **Flatten `agents/`.** A plugin folds an agent's subdirectory into its scoped
    name, so `agents/jurors/security-juror.md` would become
-   `jje:jurors:security-juror`. Flatten all 13 agents into one `agents/`
-   directory so names stay predictable (`jje:security-juror`).
+   `jje:jurors:security-juror`. Flatten all agents (the 4 roles + the 47-juror
+   roster) into one `agents/` directory so names stay predictable
+   (`jje:security-juror`).
 2. **Hooks move to `hooks/hooks.json`** at the plugin root, with commands
    referenced via `${CLAUDE_PLUGIN_ROOT}` (not `${CLAUDE_PROJECT_DIR}` — the
    scripts ship inside the cached plugin). Plugin subagent frontmatter ignores
    `hooks`/`mcpServers`/`permissionMode`, so the safety layer MUST live here.
-3. **Script paths** resolve via `${CLAUDE_PLUGIN_ROOT}/scripts/jje_state.py` with
-   a `${CLAUDE_PROJECT_DIR}` fallback. The run state and markers still live under
-   the user's repo (`${CLAUDE_PROJECT_DIR}/.jje/`).
+3. **Script path** resolves via `${CLAUDE_SKILL_DIR}/scripts/jje_state.py` — the
+   skill's own dir, the ONLY plugin variable available to a skill's Bash (NOT
+   `${CLAUDE_PLUGIN_ROOT}`, which reaches only hooks/MCP commands) — with a
+   `${CLAUDE_PROJECT_DIR}/.claude` fallback for the project install. The build copies
+   `jje_state.py` and `config.example.json` (the roster) INTO the `jje` skill dir so
+   `${CLAUDE_SKILL_DIR}` reaches them; the seating step reads the roster from there,
+   not the user's config, so a plugin update refreshes the roster automatically. Run
+   state and markers stay under `${CLAUDE_PROJECT_DIR}/.jje/` in both forms.
 4. **Invocation becomes namespaced**: the orchestrator skill is `/jje:jje`.
    Crucially, the orchestrator invokes jurors by their `name` frontmatter via
    natural-language delegation ("spawn the security-juror subagent") — the same
    string in both forms — never by slash/@-name, which differs. That keeps both
    install paths working from one set of agent prose.
+
+### Building + acceptance test
+
+`scripts/package-plugin.sh [version]` regenerates `dist/plugin/` from `.claude/`
+(committed — it is the marketplace source). To cut a release: bump `version` in
+`.claude-plugin/plugin.json` and `marketplace.json`, run the script, commit
+`dist/plugin`, push. Borrowers then `/plugin update jje@jje` (or auto-update at
+startup, keyed to `plugin.json` version; omit `version` to track every commit).
+
+The structure is validated (manifests parse, 50 skills / 51 agents / 3 hooks present,
+the skill resolves `${CLAUDE_SKILL_DIR}` with a `${CLAUDE_PROJECT_DIR}/.claude`
+fallback) — but the live `/plugin install` → run → `/plugin update` round-trip is the
+remaining acceptance test: it needs a real Claude Code session and is NOT yet in CI.
+Until that round-trip is confirmed on a real install, keep recommending the
+project-scoped `cp -r` form as primary.
 
 ### Why not split into multiple plugins
 

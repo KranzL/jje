@@ -1,63 +1,51 @@
 #!/usr/bin/env bash
-# Builds the plugin form of JJE from the canonical project-scoped .claude/ layout
-# into dist/plugin/. This is the staged distribution path (see docs/PACKAGING.md);
-# the project layout remains the tested canonical artifact.
-#
-# Transforms applied:
-#   - flatten .claude/agents/ (incl. jurors/) into dist/plugin/agents/ so plugin
-#     scoped names stay predictable (jje:<name>, not jje:jurors:<name>)
-#   - move hooks into dist/plugin/hooks/hooks.json with ${CLAUDE_PLUGIN_ROOT} paths
-#   - rewrite the orchestrator skill's script path to ${CLAUDE_PLUGIN_ROOT}
-#   - copy skills, scripts, commands, and the plugin manifest
 set -euo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$REPO/.claude"
-OUT="$REPO/dist/plugin"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+OUT="$ROOT/dist/plugin"
+VERSION="${1:-$(python3 -c "import json;print(json.load(open('$ROOT/.claude-plugin/plugin.json'))['version'])")}"
 
 rm -rf "$OUT"
-mkdir -p "$OUT/agents" "$OUT/skills" "$OUT/scripts" "$OUT/hooks" "$OUT/.claude-plugin"
+mkdir -p "$OUT/.claude-plugin" "$OUT/skills" "$OUT/agents" "$OUT/hooks"
 
-# 1. Flatten agents.
-find "$SRC/agents" -name '*.md' -exec cp {} "$OUT/agents/" \;
-echo "flattened $(find "$OUT/agents" -name '*.md' | wc -l | tr -d ' ') agents"
+cp -R "$ROOT/.claude/skills/." "$OUT/skills/"
+mkdir -p "$OUT/skills/jje/scripts"
+cp "$ROOT/.claude/scripts/jje_state.py" "$OUT/skills/jje/scripts/jje_state.py"
+cp "$ROOT/.jje/config.example.json" "$OUT/skills/jje/config.example.json"
 
-# 2. Skills + scripts, then rewrite the orchestrator's script path.
-cp -R "$SRC/skills/." "$OUT/skills/"
-cp -R "$SRC/scripts/." "$OUT/scripts/"
-if [ -f "$OUT/skills/jje/SKILL.md" ]; then
-  sed -i.bak 's#\$CLAUDE_PROJECT_DIR/.claude/scripts/jje_state.py#${CLAUDE_PLUGIN_ROOT}/scripts/jje_state.py#g' \
-    "$OUT/skills/jje/SKILL.md" && rm -f "$OUT/skills/jje/SKILL.md.bak"
-fi
+cp "$ROOT/.claude/agents/"*.md "$OUT/agents/"
+cp "$ROOT/.claude/agents/jurors/"*.md "$OUT/agents/"
 
-# 3. Hooks → hooks/hooks.json with plugin-root paths (plugin agent frontmatter
-#    cannot carry hooks; the safety layer must live here).
-cp "$SRC/hooks/"*.sh "$OUT/hooks/"
+cp "$ROOT/.claude/hooks/"*.sh "$OUT/hooks/"
 chmod +x "$OUT/hooks/"*.sh
 cat > "$OUT/hooks/hooks.json" <<'JSON'
 {
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/jje-ci-gate.sh", "timeout": 10}
-        ]
-      },
-      {
-        "matcher": "Agent|Task",
-        "hooks": [
-          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/jje-loop-guard.sh", "timeout": 10}
-        ]
-      }
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/jje-ci-gate.sh", "timeout": 10 } ] },
+      { "matcher": "Agent|Task", "hooks": [ { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/jje-loop-guard.sh", "timeout": 10 } ] }
+    ],
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/jje-hot-cache.sh", "timeout": 10 } ] }
     ]
   }
 }
 JSON
 
-# 4. Manifest + optional commands.
-cp "$REPO/.claude-plugin/plugin.json" "$OUT/.claude-plugin/plugin.json"
-[ -d "$SRC/commands" ] && cp -R "$SRC/commands" "$OUT/commands" || true
+python3 - "$OUT/.claude-plugin/plugin.json" "$VERSION" <<'PY'
+import json, sys
+out, version = sys.argv[1], sys.argv[2]
+json.dump({
+  "name": "jje",
+  "version": version,
+  "description": "Judge, Jury, Executioner — a generator-critic review harness: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, route accept/revise/replan/escalate with CI as the final gate.",
+  "author": {"name": "KranzL"},
+  "license": "Apache-2.0",
+  "keywords": ["code-review", "agents", "jury", "generator-critic", "ci-gate"],
+  "homepage": "https://github.com/KranzL/jje"
+}, open(out, "w"), indent=2)
+PY
 
-echo "built plugin at $OUT"
-echo "note: deny rules from .claude/settings.json are NOT bundled (plugins do not"
-echo "carry permission rules); document that users keep those in their settings."
+echo "built $OUT (version $VERSION)"
+echo "  skills: $(ls "$OUT/skills" | wc -l | tr -d ' ') | agents: $(ls "$OUT/agents"/*.md | wc -l | tr -d ' ') | hooks: $(ls "$OUT/hooks"/*.sh | wc -l | tr -d ' ')"
+echo "  jje_state.py in skill dir: $([ -f "$OUT/skills/jje/scripts/jje_state.py" ] && echo yes || echo NO) | roster shipped: $([ -f "$OUT/skills/jje/config.example.json" ] && echo yes || echo NO)"
+echo "note: deny rules from .claude/settings.json are NOT bundled (plugins carry no permission rules); document that users keep those in their own settings."
