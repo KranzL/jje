@@ -1,7 +1,7 @@
 {
   "name": "jje",
   "version": "0.2.0",
-  "description": "Judge, Jury, Executioner \u2014 a generator-critic review harness: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, route accept/revise/replan/escalate with CI as the final gate.",
+  "description": "Judge, Jury, Executioner \u2014 a generator-critic review harness. NOTE: plugin form is EXPERIMENTAL, not yet live-verified; the project-scoped cp -r install is the tested form (see README).",
   "author": {
     "name": "KranzL"
   },

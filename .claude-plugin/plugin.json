@@ -1,7 +1,7 @@
 {
   "name": "jje",
   "version": "0.2.0",
-  "description": "Judge, Jury, Executioner \u2014 a generator-critic review harness for Claude Code.",
+  "description": "Judge, Jury, Executioner generator-critic review harness. EXPERIMENTAL plugin form (not yet live-verified) \u2014 prefer the cp -r install; see README.",
   "author": {
     "name": "KranzL"
   },

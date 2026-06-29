@@ -37,7 +37,7 @@ out, version = sys.argv[1], sys.argv[2]
 json.dump({
   "name": "jje",
   "version": version,
-  "description": "Judge, Jury, Executioner — a generator-critic review harness: plan, build on a scratch branch, review with a panel of independent tool-backed jurors, route accept/revise/replan/escalate with CI as the final gate.",
+  "description": "Judge, Jury, Executioner — a generator-critic review harness. NOTE: plugin form is EXPERIMENTAL, not yet live-verified; the project-scoped cp -r install is the tested form (see README).",
   "author": {"name": "KranzL"},
   "license": "Apache-2.0",
   "keywords": ["code-review", "agents", "jury", "generator-critic", "ci-gate"],

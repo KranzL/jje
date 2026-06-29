@@ -7,7 +7,7 @@
     {
       "name": "jje",
       "source": "./dist/plugin",
-      "description": "Judge, Jury, Executioner generator-critic review harness.",
+      "description": "Judge, Jury, Executioner generator-critic review harness. EXPERIMENTAL plugin form (not yet live-verified) \u2014 prefer the cp -r install; see README.",
       "version": "0.2.0"
     }
   ]

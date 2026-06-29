@@ -64,6 +64,11 @@ for your stack to get tool-backed review instead of model-only review.
 
 ### Or install as a plugin (versioned, auto-updating)
 
+> **Status: EXPERIMENTAL — not yet live-verified.** The plugin is built and
+> structurally validated, but the live `/plugin install` → run → `/plugin update`
+> round-trip has not been confirmed on a real Claude Code session. **Prefer the
+> `cp -r` install above** until this note is removed.
+
 JJE is also packaged as a Claude Code plugin + one-entry marketplace, which gives
 **versioned distribution and updates** instead of re-copying files:
 
