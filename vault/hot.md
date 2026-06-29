@@ -17,7 +17,7 @@ ESCALATE-via-contradiction, large multi-file full-panel PR #11). Also: made the
 
 ## Key recent facts
 - **JJE** = a generator–critic review harness for Claude Code, public at
-  `github.com/KranzL/jje`. Roster **38 jurors / 11 lanes / 14 presets**.
+  `github.com/KranzL/jje`. Roster **47 jurors / 11 lanes / 14 presets**.
 - **THE LOOP HAS NOW LOOPED.** A real `/jje` run on a private test repo went all
   the way to a shipped PR — Planner + brokered questions, jury, Judge **ACCEPT**,
   a **user REVISE-override** of the Judge, iter-2 ACCEPT, CI gate, PR delivery,
@@ -35,6 +35,16 @@ ESCALATE-via-contradiction, large multi-file full-panel PR #11). Also: made the
   [[#Active threads|12-scenario gauntlet]] (`JJE-GAUNTLET.md`).
 
 ## Recent changes
+- **Fixed 6 core bugs from a real field run** (59c21b9): CLAUDE_PROJECT_DIR self-establishes,
+  base_ref pinned to a SHA, contradictions auto-resolve (no permanent escalate trap), Judge
+  reads absolute verdict paths, a hygiene scan flags >5MB committed artifacts, and a
+  `persistent_jurors` signal catches morphing recurrences the literal fingerprint misses.
+- **Expanded the Go + datalake lanes: roster 38 → 47** (3e99033). 9 new jurors (go-http-safety,
+  go-modules, go-db-sql, go-time, go-serialization; merge-upsert, cdc-ingest,
+  catalog-metastore-ops, multi-engine-interop) + 4 add-checks, each draft → fact-check →
+  converge. Go tool-backing verified LIVE (go test -race / vet / escape / errcheck /
+  golangci-lint all fired on planted defects). **Lesson reconfirmed: LLM-drafted dense
+  domain facts need the fact-check gate — 2 rounds caught invented flags + inverted facts.**
 - **Strengthened all 38 [[jurors]] to industry-standard depth** (c0bcc44): audited
   vs the `data-leakage` gold standard, then deepened each (named canon + real numbers
   + quantified checks + anti-pattern hunt + crisp blocking bar; uniform 47–74 lines).
