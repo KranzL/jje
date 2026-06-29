@@ -136,6 +136,10 @@ def cmd_init(a):
         run_id = f"{run_id}-{slug}"
     rd = _run_dir(run_id)
     branch = f"jje/{run_id}"
+    base_arg = a.base or "HEAD"
+    _rp = subprocess.run(["git", "-C", ROOT, "rev-parse", base_arg],
+                         capture_output=True, text=True)
+    base_ref = _rp.stdout.strip() if _rp.returncode == 0 and _rp.stdout.strip() else base_arg
     run = {
         "run_id": run_id,
         "request": a.request,
@@ -144,7 +148,7 @@ def cmd_init(a):
         "status": "planning",
         "scratch_branch": branch,
         "worktree": os.path.join(".jje", "worktrees", run_id),
-        "base_ref": a.base or "HEAD",
+        "base_ref": base_ref,
         "ci_command": cfg.get("ci_command", "make ci"),
         "escalation_policy": cfg.get("escalation_policy", "stop"),
         "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -176,6 +180,26 @@ def cmd_start_iteration(a):
     os.makedirs(os.path.join(rd, "iterations", f"iter-{it}", "verdicts"), exist_ok=True)
     _emit({"iteration": it, "budget": run["budget"],
            "remaining": run["budget"] - it})
+
+
+def _hygiene_scan(run):
+    wt = os.path.join(ROOT, run.get("worktree", "")) if run.get("worktree") else ""
+    base = run.get("base_ref")
+    out = []
+    if not (wt and base and os.path.isdir(wt)):
+        return out
+    r = subprocess.run(["git", "-C", wt, "diff", "--name-only", "--diff-filter=A", base],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return out
+    for fn in r.stdout.splitlines():
+        try:
+            sz = os.path.getsize(os.path.join(wt, fn))
+        except OSError:
+            continue
+        if sz > 5 * 1024 * 1024:
+            out.append({"file": fn, "mb": round(sz / 1048576, 1)})
+    return out
 
 
 # ---------------------------------------------------------------- guards (oscillation + budget)
@@ -211,6 +235,7 @@ def cmd_check_guards(a):
             fp = _fingerprint(v.get("category", v.get("juror", "?")), fnd)
             current.append((fp, fnd, v.get("juror")))
     recurring = []
+    current_fps = {fp for fp, _, _ in current}
     for fp, fnd, juror in current:
         entry = ledger["findings"].setdefault(
             fp, {"id": fnd.get("id"), "issue": fnd.get("issue"),
@@ -221,27 +246,61 @@ def cmd_check_guards(a):
             recurring.append({"fingerprint": fp, "id": entry["id"],
                               "issue": entry["issue"], "juror": juror,
                               "iterations": entry["iterations"]})
+    active_contradictions = []
+    for c in ledger["contradictions"]:
+        if c.get("resolved"):
+            continue
+        if c.get("a") in current_fps or c.get("b") in current_fps:
+            active_contradictions.append(c)
+        else:
+            c["resolved"] = True
     _save(os.path.join(rd, "ledger.json"), ledger)
-    escalate = bool(recurring) or bool(ledger["contradictions"]) \
+    hygiene = _hygiene_scan(run)
+    juror_iters = {}
+    for entry in ledger["findings"].values():
+        j = entry.get("juror")
+        if j:
+            juror_iters.setdefault(j, set()).update(entry.get("iterations", []))
+    persistent = [{"juror": j, "iterations": sorted(s)}
+                  for j, s in juror_iters.items() if len(s) >= 3]
+    escalate = bool(recurring) or bool(active_contradictions) \
         or run["iteration"] >= run["budget"]
     _emit({"iteration": it, "blocking_now": len(current),
-           "malformed": malformed,
-           "recurring": recurring, "contradictions": ledger["contradictions"],
+           "malformed": malformed, "hygiene": hygiene,
+           "recurring": recurring, "persistent_jurors": persistent,
+           "contradictions": active_contradictions,
            "budget_remaining": run["budget"] - it,
            "recommend_escalate": escalate})
 
 
 def cmd_record_contradiction(a):
     """The Judge calls this when it sees an irreconcilable pair: reviewer A
-    demands X, fixing X trips reviewer B. Forces ESCALATE on the next guard
-    check so the loop never thrashes on it."""
+    demands X, fixing X trips reviewer B. Forces ESCALATE while it stays active;
+    check-guards auto-resolves it once NEITHER side is blocking anymore (or call
+    resolve-contradiction), so a later clean candidate is never trapped."""
     rd = _run_dir(a.run)
     ledger = _load(os.path.join(rd, "ledger.json"))
     ledger["contradictions"].append(
-        {"a": a.a, "b": a.b, "note": a.note,
+        {"a": a.a, "b": a.b, "note": a.note, "resolved": False,
          "iteration": _load(os.path.join(rd, "run.json"))["iteration"]})
     _save(os.path.join(rd, "ledger.json"), ledger)
     _emit({"recorded": True, "contradictions": ledger["contradictions"]})
+
+
+def cmd_resolve_contradiction(a):
+    rd = _run_dir(a.run)
+    ledger = _load(os.path.join(rd, "ledger.json"))
+    n = 0
+    for c in ledger["contradictions"]:
+        if c.get("resolved"):
+            continue
+        if not a.a or a.a in (c.get("a"), c.get("b")):
+            c["resolved"] = True
+            n += 1
+    _save(os.path.join(rd, "ledger.json"), ledger)
+    _emit({"resolved_count": n,
+           "active_remaining": sum(1 for c in ledger["contradictions"]
+                                   if not c.get("resolved"))})
 
 
 # ---------------------------------------------------------------- decision routing
@@ -333,9 +392,10 @@ def cmd_escalate(a):
     for f in open_findings:
         lines.append(f"- [{f.get('juror')}] {f.get('id')}: {f.get('issue')} "
                      f"(seen in iters {f['iterations']})")
-    if ledger["contradictions"]:
+    _unresolved = [c for c in ledger["contradictions"] if not c.get("resolved")]
+    if _unresolved:
         lines += ["", "## Contradictory pairs"]
-        for c in ledger["contradictions"]:
+        for c in _unresolved:
             lines.append(f"- {c['a']} <-> {c['b']}: {c['note']}")
     with open(os.path.join(rd, "ESCALATION.md"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
@@ -401,6 +461,9 @@ def main():
     s = sub.add_parser("record-contradiction"); s.add_argument("--run", required=True)
     s.add_argument("--a", required=True); s.add_argument("--b", required=True)
     s.add_argument("--note", default=""); s.set_defaults(fn=cmd_record_contradiction)
+
+    s = sub.add_parser("resolve-contradiction"); s.add_argument("--run", required=True)
+    s.add_argument("--a", default=""); s.set_defaults(fn=cmd_resolve_contradiction)
 
     s = sub.add_parser("record-decision"); s.add_argument("--run", required=True)
     s.add_argument("--decision", required=True); s.add_argument("--feedback", default="")

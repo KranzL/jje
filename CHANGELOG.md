@@ -6,6 +6,26 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Fixed (from a real field run on an external repo)
+- **`CLAUDE_PROJECT_DIR` self-establishes.** The skill derives and exports it from the
+  git root if unset, so the first `S` call no longer fails in a plain shell.
+- **`base_ref` is pinned to a SHA at init** (was the literal `HEAD`), so a re-run that
+  adds commits still lets jurors diff against the original baseline.
+- **A contradiction no longer traps the run forever.** `check-guards` auto-resolves a
+  recorded contradiction once neither side still blocks (plus a `resolve-contradiction`
+  command), so a later clean candidate can reach ACCEPT — previously any recorded
+  contradiction forced `recommend_escalate` permanently.
+- **The Judge reads the real verdict files.** It is now passed absolute verdict paths
+  and must read exactly those (flagging unreadable ones as a blocking unknown) instead
+  of routing off the prompt summary when its working dir pointed at a stale run.
+- **A committed build artifact is caught.** `check-guards` runs a deterministic hygiene
+  scan and reports any added file > 5 MB; the orchestrator treats it as blocking (a
+  71 MB binary previously slipped through to push).
+- **Morphing recurrences get a soft signal.** `check-guards` reports `persistent_jurors`
+  (a juror blocking across ≥3 iterations even if the finding text changes), which the
+  Judge weighs as recurrence-grade thrash — the literal fingerprint guard alone missed
+  a finding that changed shape.
+
 ### Changed (juror strengthening — all 38 review skills to industry-standard depth)
 - Every juror review skill was audited against the `data-leakage` gold standard, then
   strengthened to principal depth: named authoritative canon with real numbers (e.g.

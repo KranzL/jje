@@ -12,11 +12,17 @@ spawn every subagent yourself (no nested spawning), you keep trustworthy state
 by calling `jje_state.py` (never hand-edit the JSON), and you let the hooks
 enforce the hard guarantees. Do the steps in order. Use absolute paths.
 
-Define the state helper as a shell **function** (a `S="…"` variable + `S init`
+First **ensure `CLAUDE_PROJECT_DIR` is exported** — it is frequently NOT set in a
+plain shell, and the very first `S` call then fails (it cannot find the script).
+Derive it from the git root (falling back to the cwd) and export it before anything
+else:
+`: "${CLAUDE_PROJECT_DIR:=$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"; export CLAUDE_PROJECT_DIR`
+Then define the state helper as a shell **function** (a `S="…"` variable + `S init`
 breaks in zsh — the default macOS shell — because zsh does not word-split
 unquoted parameter expansions, so the very first command fails with exit 127):
 `S(){ python3 "$CLAUDE_PROJECT_DIR/.claude/scripts/jje_state.py" "$@"; }`
-Then call it as `S <subcommand> …` (no `$`), e.g. `S init --request "…"`.
+Then call it as `S <subcommand> …` (no `$`), e.g. `S init --request "…"`. Keep this
+exported for the whole run — every juror and the Judge resolve paths from it.
 
 > **Spawn tool name:** this guide says "spawn the `<role>` subagent". Use your
 > subagent-spawn tool — it is named `Agent` (older Claude Code calls it `Task`);
@@ -156,10 +162,17 @@ Each juror writes exactly one verdict to
 
 ## 6. Guards, then Judge
 1. `S check-guards --run $RUN`. This folds this iteration's blocking findings
-   into the ledger and reports `recurring`, `contradictions`, `budget_remaining`,
-   `recommend_escalate`.
-2. Spawn the `judge` subagent (Read-only). Give it the verdict dir, the plan, the
-   prior iterations' decisions, and the guard output. It reasons over verdicts
+   into the ledger and reports `recurring`, `contradictions` (auto-resolved once
+   neither side still blocks), `hygiene`, `budget_remaining`, `recommend_escalate`.
+   **If `hygiene` is non-empty** — a large file (build artifact, binary, vendored
+   blob) was committed to the candidate — treat it as blocking: send the Executor
+   back to delete it and add it to `.gitignore`; never let it reach a PR.
+2. Spawn the `judge` subagent (Read-only). Pass it **absolute paths** and list the
+   verdict files for THIS iteration explicitly —
+   `$RUN/iterations/iter-<n>/verdicts/*.json` (do NOT rely on the Judge's working
+   directory; it must read exactly the files you name, never infer a path from cwd
+   or a prior run). Also give it the plan, the prior iterations' decisions, and the
+   guard output. It reasons over those verdict files
    (never re-reviews the candidate) and returns
    `{decision, rationale, feedback, unresolved, contradictions, clarifications}`
    per `skills/jje/routing.md`. The `clarifications` array holds genuinely
