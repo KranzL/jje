@@ -35,6 +35,14 @@ ESCALATE-via-contradiction, large multi-file full-panel PR #11). Also: made the
   [[#Active threads|12-scenario gauntlet]] (`JJE-GAUNTLET.md`).
 
 ## Recent changes
+- **Strengthened all 38 [[jurors]] to industry-standard depth** (c0bcc44): audited
+  vs the `data-leakage` gold standard, then deepened each (named canon + real numbers
+  + quantified checks + anti-pattern hunt + crisp blocking bar; uniform 47–74 lines).
+  Hardened via **3 adversarial fact-check rounds** — the generators over-reached and
+  invented plausible specifics; the checkers caught them (Avro compat direction, Kargo
+  fields, IEEE-754 log(0), flag renames); converged with a correct-or-remove rule + 7
+  manual fixes. **Lesson: LLM-authored dense domain facts have a high error rate —
+  generate-then-fact-check (and bias to removal) is mandatory, not optional.**
 - **Made the [[hot|Hot Cache]] actually borrowable** (it was inert for any user
   without a hand-built vault): §10 now **auto-seeds `vault/` on first run**, added a
   real `hot_cache` config off-switch (honored by the hook + §10), hardened via an
