@@ -53,6 +53,7 @@ Everything else is advisory: suboptimal ZORDER column count; file sizes modestly
 - Partition key on a raw timestamp or UUID column — effectively one partition per row, the canonical small-files explosion.
 - `OPTIMIZE` without a `WHERE` clause on a large Delta table → full-table rewrite instead of recently-written dirty files only.
 - No `hoodie.cleaner.policy` on a Hudi MOR table — delta logs accumulate unboundedly, read amplification grows without bound.
+- A compaction/`OPTIMIZE`/clustering strategy declared but not wired to a schedule (Airflow DAG, cron, or maintenance job) — small files still accumulate; the strategy is inert.
 
 ## 7. Emit the verdict
 One JSON object per skills/jje-contract/SKILL.md, written to iterations/iter-<n>/verdicts/partitioning-layout-juror.json. ran[]/skipped[] honest. id = part-<check>-<file>:<line>. Nothing outside the JSON.

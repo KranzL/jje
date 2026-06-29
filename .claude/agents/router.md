@@ -40,8 +40,16 @@ nothing and you do NOT review the candidate.
      event schemas.
    - **datalake** — `table-format-juror`, `partitioning-layout-juror`,
      `storage-format-juror`: Iceberg/Delta/Hudi, Parquet/ORC/Avro, partition/compaction.
-   - **go** — `go-concurrency-juror`, `go-error-handling-juror`, `go-performance-juror`:
-     `*.go`.
+     Also: `merge-upsert-juror` on MERGE/UPDATE/DELETE DML; `cdc-ingest-juror` on
+     CDC/Debezium/Kafka-Connect config landing into a lakehouse; `catalog-metastore-ops-juror`
+     on Glue/HMS/Unity/Polaris/Nessie catalog or partition-registration changes;
+     `multi-engine-interop-juror` when >1 query engine or Delta/Iceberg feature flags
+     are declared against one table.
+   - **go** — `go-concurrency-juror`, `go-error-handling-juror`, `go-performance-juror`
+     on any `*.go`. Also: `go-http-safety-juror` when `net/http` server/client code is
+     touched; `go-modules-juror` on `go.mod`/`go.sum`/`go.work`/`vendor/` changes;
+     `go-db-sql-juror` when `database/sql` is used; `go-time-juror` when the `time`
+     package is used; `go-serialization-juror` when `encoding/json` struct tags change.
    - **iac** — `terraform-juror`: `*.tf`, Terraform/CloudFormation.
    - **deploy** — `deployment-juror`: Kargo/Argo CD/Rollouts, k8s manifests, promotion config.
    - **data-modeling** — `dimensional-modeling-juror`, `slowly-changing-dimensions-juror`,

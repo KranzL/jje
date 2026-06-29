@@ -53,6 +53,7 @@ Everything else is advisory. A finding with no evidence is advisory by rule.
 - dbt `incremental_strategy: append` with no upstream dedup — every backfill or full-refresh duplicates the partition.
 - `foreachBatch` / Flink process function calling a non-idempotent external endpoint with no idempotency-key header.
 - HWM advanced before the downstream write commits — failure between advance and write silently drops records.
+- An incremental/backfill window with no overlap dedup or partition isolation — re-running or overlapping a date range double-counts the boundary rows.
 
 ## 6. Emit the verdict
 One JSON object per skills/jje-contract/SKILL.md, written to iterations/iter-<n>/verdicts/idempotency-juror.json. ran[]/skipped[] honest. id = idem-<check>-<file>:<line>. Nothing outside the JSON.

@@ -54,6 +54,7 @@ Everything else is advisory: bare `return err` not crossing a package boundary, 
 - `_ = fallibleCall()` or bare dropped return on an I/O or state-mutation call — errcheck miss.
 - `fmt.Errorf("%w", fmt.Errorf("%w", err))` — double-wrapping duplicating context strings.
 - `errors.New(...)` inside a function body used as a sentinel — new value each call, never equal under `errors.Is`; must be a package-level `var`.
+- A generic type/func constrained on `comparable` instantiated with an interface type whose dynamic value can be a slice/map/func — compiles, but panics at runtime on the first map insert or `==`.
 
 ## 6. Emit the verdict
 One JSON object per `skills/jje-contract/SKILL.md`, written to

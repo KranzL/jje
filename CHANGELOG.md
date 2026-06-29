@@ -6,6 +6,27 @@ semantic versioning (see CONTRIBUTING.md for what MAJOR/MINOR/PATCH mean here).
 
 ## [Unreleased]
 
+### Added (Go + datalake lane expansion — roster now 47)
+- **9 new jurors** filling coverage gaps a real Go/lakehouse review needs, surfaced by
+  an adversarial completeness audit of both lanes:
+  - **Go**: `go-http-safety` (server/client timeouts, body limits, DefaultClient),
+    `go-modules` (go.mod/go.sum integrity, replace/vendor/embed, v2 paths — backed by
+    `go mod verify`/`tidy`), `go-db-sql` (Rows/tx lifecycle — `sqlclosecheck`/`rowserrcheck`),
+    `go-time` (time.Time equality, zone-aware parsing, UTC storage), `go-serialization`
+    (json tag drift, >2^53 precision, MarshalJSON receiver dispatch).
+  - **Datalake**: `merge-upsert` (MERGE/UPDATE/DELETE DML correctness), `cdc-ingest`
+    (source-order/dedup/tombstones), `catalog-metastore-ops` (partition registration,
+    catalog drift), `multi-engine-interop` (protocol/feature-flag vs declared engines).
+- Each was drafted from a vetted spec, then put through draft → adversarial fact-check →
+  correct-or-remove convergence; the checks caught invented linter flags, wrong spec
+  versions, and inverted facts (e.g. `MarshalJSON` receiver, `log(0)`→NaN) before shipping.
+- Add-checks to existing jurors: comparable-generics panic (`go-error-handling`),
+  orphan-file + checkpoint-vs-snapshot-expiration (`table-format`), backfill-overlap
+  (`idempotency`), unscheduled-maintenance (`partitioning-layout`).
+- The `router` seats them on the right signals; the `go`/`datalake`/`everything` presets
+  are extended. The Go tool-backing was verified live (`go test -race`, `go vet`,
+  escape analysis, `errcheck`, `golangci-lint` all fired on planted defects).
+
 ### Fixed (from a real field run on an external repo)
 - **`CLAUDE_PROJECT_DIR` self-establishes.** The skill derives and exports it from the
   git root if unset, so the first `S` call no longer fails in a plain shell.

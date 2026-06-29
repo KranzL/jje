@@ -63,6 +63,8 @@ Everything else is advisory (`warn`/`info`, `blocking: false`). A finding with n
 - Partitioned Delta overwrite without `replaceWhere` — overwrites the entire table instead of the target partition.
 - `delta.columnMapping.mode` set without `minReaderVersion=2, minWriterVersion=5` protocol bump.
 - `hoodie.table.type` change (CoW↔MoR) on an existing table.
+- Snapshot expiration (`ExpireSnapshots`/`VACUUM`) with no paired orphan-file cleanup (Iceberg `remove_orphan_files`) — expired-snapshot data files are unreferenced but never deleted, leaking storage unbounded.
+- A streaming sink whose checkpoint-retention window is shorter than the table's snapshot-expiration window — on replay the last committed snapshot is already expired, breaking exactly-once recovery.
 
 ## 6. Emit the verdict
 One JSON object per `skills/jje-contract/SKILL.md`, written to

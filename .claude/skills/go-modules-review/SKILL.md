@@ -38,7 +38,7 @@ Everything else is advisory: missing `toolchain` directive; remote-ref replace s
 - `//go:embed *` or `//go:embed .` (unrestricted embed grabs all files under the directory).
 - go.mod `go 1.21` or higher with no `toolchain` line (non-reproducible toolchain selection across environments).
 - Module path missing `/v2` suffix when the repo carries a v2+ semver tag and internal imports reference the versioned path.
-- Hand-edited files in vendor/ diverging from upstream source (grep for `// Modified` or mismatched `// indirect` annotations against go.mod).
+- Hand-edited files in vendor/ diverging from upstream source (grep for `// Modified` markers, or a `vendor/modules.txt` out of sync with go.mod).
 
 ## Emit the verdict
 One JSON object per skills/jje-contract/SKILL.md, written to iterations/iter-<n>/verdicts/go-modules-juror.json. ran[]/skipped[] honest. id = gomod-<check>-<file>:<line>. Nothing outside the JSON.
